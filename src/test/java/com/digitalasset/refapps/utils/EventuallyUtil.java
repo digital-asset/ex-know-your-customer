@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.util.function.Supplier;
 
 public class EventuallyUtil {
+  private static final Duration TOO_MUCH_TIME = Duration.ofMinutes(3l);
+
   public static void eventually(Runnable code) throws InterruptedException {
     eventually(
         () -> {
@@ -28,7 +30,11 @@ public class EventuallyUtil {
         result = code.get();
         finished = true;
       } catch (Throwable t) {
-        if (Duration.between(started, Instant.now()).compareTo(Duration.ofSeconds(60)) > 0) {
+        if (Duration.between(started, Instant.now()).compareTo(TOO_MUCH_TIME) > 0) {
+          // This exception (AssertionError) may be thrown even if the machine is only "too slow"
+          // to run the code before timeout.
+          // One may need to increase the timeout (Duration TOO_MUCH_TIME) in case of an especially
+          // slow environment.
           fail("Code did not succeed within timeout.");
         } else {
           Thread.sleep(200);
