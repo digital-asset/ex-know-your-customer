@@ -1,0 +1,43 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup where
+
+import DA.Time
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Roles
+import DA.TimeService.TimeService
+import Test.DA.RefApps.KnowYourCustomer.MarketSetupUtils
+
+setup : Scenario (ContractId DataStreamRequest)
+setup = do
+    kycAnalyst <- getParty "KYC_Analyst"
+    cipProviderParty <- getParty "CIP_Provider"
+    setupConsumerProviderHierarchy kycAnalyst cipProviderParty
+
+setupConsumerProviderHierarchy : Party -> Party -> Scenario (ContractId DataStreamRequest)
+setupConsumerProviderHierarchy consumer provider = scenario $ do
+    operator <- getParty "Operator"
+
+    submit operator $ create CurrentTime with
+      operator
+      currentTime = appStartTime
+      observers = [provider]
+
+    debug "Creating operator role"
+    operatorRole <- submit operator $ create (OperatorRole with operator = operator)
+
+    debug "Creating relationships"
+    PublisherRelationship cipProviderConsumerRelationship _ <- createRelationship operator operatorRole provider consumer
+
+    debug "Creating data stream request"
+    consumer `submit` exercise cipProviderConsumerRelationship RequestStream with reference = someReference, starting, ending, staleHours
+  where
+    someReference = ObservationReference "something" True True True
+    starting = addRelTime appStartTime (hours 1)
+    ending = addRelTime appStartTime (days 366)
+    staleHours = 4

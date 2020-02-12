@@ -1,0 +1,57 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.RenewalTest where
+
+import DA.Assert
+import DA.TimeService.TimeService
+import DA.Time as T
+
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Types
+
+import Test.DA.RefApps.KnowYourCustomer.RolesTest
+import Test.DA.RefApps.KnowYourCustomer.Utils
+
+testLicenseRenewal : Scenario ()
+testLicenseRenewal = scenario do
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+    <- roleSetup
+  mdvStreamId <- submit mdVendorParty $
+    exercise mdvStreamId StartDataStream with
+      newObservation = currentObservation
+
+  let
+    newEnding = addRelTime afterExpiry (days 1)
+    staleHours = 3
+    someCIP = createCIP 4890
+
+  currentTime <- submit operator do
+    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
+
+  submit mdVendorParty do
+    mdvStreamId <- exercise mdvStreamId UpdateObservation with
+      time = now
+      newValue = someCIP
+    mdvStream <- fetch mdvStreamId
+    mdvStream.consumers === []
+
+  createDataStream
+    mdVendorParty bankParty mdvCon1Relation
+    reference afterExpiry newEnding staleHours (SubscriptionFee 10.000)
+
+  let
+    lookupKey = (Publisher mdVendorParty, reference)
+    newCIP = createCIP 8229
+
+  submit mdVendorParty do
+    (renewedStreamId, _) <- fetchByKey @DataStream lookupKey
+    renewedStreamId <- exercise renewedStreamId UpdateObservation with
+      time = now
+      newValue = newCIP
+    renewedStream <- fetch renewedStreamId
+    renewedStream.consumers === [Consumer bankParty]
+    renewedStream.observation.value === newCIP

@@ -1,0 +1,94 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.Types where
+
+import DA.Date (date, Month(..))
+import DA.Time as T
+import Prelude hiding (lookup)
+
+data ObservationReference =
+    ObservationReference
+      with
+        customerName: Text
+        includeCIP: Bool
+        includeCDD: Bool
+        includeScreening: Bool
+    deriving (Eq, Show)
+
+data CipData =
+  CipData
+    with
+      legalName: Text
+      ssn: Text
+      tin: Text
+      naic: Text
+      address: Text
+      country: Text
+  deriving (Show, Eq)
+
+data CddData =
+  CddData
+    with
+      naic: Text
+      countryOfLicense: Text
+      legalEntityType: Text
+      publiclyTraded: Bool
+      revenue: Text
+      supplierType: Text
+      relationship: Text
+  deriving (Show, Eq)
+
+data ScreeningData =
+  ScreeningData
+    with
+      sanctions: Text
+      ofac: Text
+      negativeMedia: Text
+      pep: Text
+  deriving (Show, Eq)
+
+data OptionalData a = Data a | NotAvailable
+  deriving (Show, Eq)
+
+data ResearchData =
+  ResearchData
+    with
+      researchCip: OptionalData CipData
+      researchCdd: OptionalData CddData
+      researchScreening: OptionalData ScreeningData
+    deriving (Eq, Show)
+
+data ObservationValue =
+    CIP CipData
+  | CDD CddData
+  | Screening ScreeningData
+  | Research
+      with
+        researchData: ResearchData
+        reviewedBy: Party
+        verifiedByQA: Bool
+  deriving (Eq, Show)
+
+data Observation = Observation
+  with
+    label: ObservationReference
+    time: Time
+    value: ObservationValue
+  deriving (Eq, Show)
+
+data Publisher = Publisher with party: Party deriving (Eq, Show)
+data Consumer = Consumer with party: Party deriving (Eq, Show)
+
+type PublicationKey = (Publisher, Consumer, ObservationReference)
+
+appStartDate : Date
+appStartDate = date 2019 Nov 14
+
+appStartTime : Time
+appStartTime = T.time appStartDate 23 30 30
+
+newtype SubscriptionFee = SubscriptionFee (Numeric 3) deriving (Eq, Show, Ord)

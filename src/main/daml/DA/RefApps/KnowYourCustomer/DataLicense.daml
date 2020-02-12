@@ -1,0 +1,139 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.DataLicense where
+
+import DA.Time
+import DA.TimeService.TimeService
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Publication
+
+data LicenseData =
+      LicenseData with
+        publisher: Publisher
+        consumer: Consumer
+        reference: ObservationReference
+        starting: Time
+        ending: Time
+        stale: RelTime
+        price: SubscriptionFee
+        operator: Party
+      deriving (Eq, Show)
+
+template DataLicense
+  with
+    licenseData : LicenseData
+  where
+    signatory licenseData.publisher.party, licenseData.consumer.party
+
+    key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
+    maintainer key._1.party
+
+    controller licenseData.consumer.party can
+      DataLicense_ClaimNonPerformance: ContractId NonPerformance
+        do
+          claimed <- fetchTime licenseData.operator
+          create NonPerformance with licenseData = licenseData, claimed
+
+    controller licenseData.publisher.party can
+      DataLicense_ClaimRegistered: ContractId RegisteredDataLicense
+        do
+          began <- fetchTime licenseData.operator
+          create RegisteredDataLicense with ..
+
+template RegisteredDataLicense
+  with
+    licenseData : LicenseData
+  where
+    signatory licenseData.publisher.party, licenseData.consumer.party
+
+    key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
+    maintainer key._1.party
+
+    controller licenseData.consumer.party can
+      RegisteredDataLicense_ClaimNonPerformance: ContractId NonPerformance
+        do
+          claimed <- fetchTime licenseData.operator
+          create NonPerformance with licenseData = licenseData, claimed
+
+    controller licenseData.publisher.party can
+      RegisteredDataLicense_BeginStreaming: ContractId LiveStreamLicense
+        do
+          began <- fetchTime licenseData.operator
+          create LiveStreamLicense with licenseData = licenseData, began, ..
+
+template LiveStreamLicense
+  with
+    licenseData: LicenseData
+    began: Time
+  where
+    signatory licenseData.publisher.party, licenseData.consumer.party
+
+    ensure licenseData.ending > began
+
+    key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
+    maintainer key._1.party
+
+    controller licenseData.consumer.party can
+      nonconsuming ClaimStale: ContractId StalePublication
+        with publicationId: ContractId Publication
+        do
+          publication <- fetch publicationId
+          claimed <- fetchTime licenseData.operator
+          create StalePublication
+            with ..
+
+    controller licenseData.publisher.party can
+      ExpireLicense: ()
+        do
+          now <- fetchTime licenseData.operator
+          let message = "Expiring license. Ending at: " <> show licenseData.ending
+                     <> ", current time is: " <> show now
+          assertMsg message (isLicenseExpired licenseData now)
+
+isLicenseExpired : LicenseData -> Time -> Bool
+isLicenseExpired license currentTime = license.ending <= currentTime
+
+isPublicationStale : Publication -> LicenseData -> Time -> Bool
+isPublicationStale publication licenseData currentTime =
+  (addRelTime publication.published licenseData.stale) < currentTime
+
+template StalePublication
+  with
+    licenseData: LicenseData
+    claimed: Time
+    publicationId: ContractId Publication
+    publication: Publication
+  where
+    signatory licenseData.publisher.party
+
+    observer licenseData.publisher.party
+
+    ensure publication.observation.label == licenseData.reference
+      && publication.publisher == licenseData.publisher
+      && publication.consumer == licenseData.consumer
+      && not (isLicenseExpired licenseData claimed)
+      && isPublicationStale publication licenseData claimed
+
+    controller licenseData.consumer.party can
+      DismissStalePublication: ()
+        do return ()
+
+template NonPerformance
+  with
+    licenseData: LicenseData
+    claimed: Time
+  where
+    signatory licenseData.consumer.party
+
+    observer licenseData.publisher.party
+
+    ensure claimed > licenseData.starting
+
+    controller licenseData.consumer.party can
+      DismissNonPerformance: ()
+        do return ()

@@ -1,0 +1,109 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.TimeService.TimeService where
+
+import DA.Time
+
+fetchTime: Party -> Update Time
+fetchTime operator = do
+  (_, time) <- fetchByKey @CurrentTime operator
+  pure time.currentTime
+
+template CurrentTime
+  with
+    operator : Party
+    currentTime : Time
+    observers : [Party]
+  where
+    signatory operator
+
+    observer observers
+
+    key operator: Party
+    maintainer key
+
+    controller operator can
+      UpdateCurrentTime: ContractId CurrentTime
+        with newCurrentTime: Time
+        do
+          create this with currentTime = newCurrentTime
+
+      CurrentTime_AddObserver: ContractId CurrentTime
+        with newObserver: Party
+        do
+          create this with observers = newObserver :: observers
+
+template TimeConfiguration
+  with
+    operator: Party
+    isRunning: Bool -- isRunning is a status variable considered usually an antipattern, but we make an exception for sake of simplicity.
+    modelPeriodTime: RelTime
+  where
+    signatory operator
+
+    key operator: Party
+    maintainer key
+
+    -- From bindings (e.g. Java bots), TimeManager should be used for atomicity instead of exercising these directly.
+    controller operator can
+      TimeConfiguration_Stop: ContractId TimeConfiguration do
+        create this with isRunning = False
+
+      TimeConfiguration_Continue: ContractId TimeConfiguration do
+        create this with isRunning = True
+
+      TimeConfiguration_SetModelPeriodTime: ContractId TimeConfiguration
+        with newModelPeriodTime: RelTime
+        do
+          create this with modelPeriodTime = newModelPeriodTime
+
+-- We need a permanent contract (similar to a role contract) exposed to bindings to
+-- manage time in single, atomic commands to avoid race conditions
+template TimeManager
+  with
+    operator: Party
+  where
+    signatory operator
+
+    controller operator can
+      nonconsuming AddObserver: ContractId CurrentTime
+        with newObserver: Party
+        do
+          (currentTimeCid, _) <- fetchByKey @CurrentTime operator
+          exercise currentTimeCid CurrentTime_AddObserver with newObserver
+
+      nonconsuming SetCurrentTime: ContractId CurrentTime
+        with newCurrentTime: Time
+        do
+          (currentTimeCid, _) <- fetchByKey @CurrentTime operator
+          exercise currentTimeCid UpdateCurrentTime with newCurrentTime = newCurrentTime
+
+      nonconsuming AdvanceCurrentTime: ContractId CurrentTime
+        do
+          (currentTimeCid, currentTime) <- fetchByKey @CurrentTime operator
+          (_, timeConfiguration) <- fetchByKey @TimeConfiguration operator
+          if timeConfiguration.isRunning
+          then
+            exercise currentTimeCid UpdateCurrentTime
+              with
+                newCurrentTime = addRelTime currentTime.currentTime timeConfiguration.modelPeriodTime
+          else
+            pure currentTimeCid
+
+      nonconsuming Stop: ContractId TimeConfiguration do
+        (timeConfigurationCid, _) <- fetchByKey @TimeConfiguration operator
+        exercise timeConfigurationCid TimeConfiguration_Stop
+
+      nonconsuming Continue: ContractId TimeConfiguration do
+        (timeConfigurationCid, _) <- fetchByKey @TimeConfiguration operator
+        exercise timeConfigurationCid TimeConfiguration_Continue
+
+      nonconsuming SetModelPeriodTime: ContractId TimeConfiguration
+        with newModelPeriodTime: RelTime
+        do
+          (timeConfigurationCid, _) <- fetchByKey @TimeConfiguration operator
+          exercise timeConfigurationCid TimeConfiguration_SetModelPeriodTime with newModelPeriodTime

@@ -1,0 +1,48 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.MergeAndSendToReviewTestSetup where
+
+import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Publication
+import Test.DA.RefApps.KnowYourCustomer.RolesTest
+import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
+
+setup : Scenario ()
+setup = scenario $ do
+  setupRawPublicationsAndResearchProcess
+  pure ()
+
+setupRawPublicationsAndResearchProcess : Scenario (ContractId ResearchProcess)
+setupRawPublicationsAndResearchProcess = scenario $ do
+  operator <- getParty "Operator"
+  analyst <- getParty "KYC_Analyst"
+  reviewer <- getParty "KYC_Reviewer"
+  qualityAssurance <- getParty "KYC_QA"
+  cipProvider <-getParty "CIP_Provider"
+  screeningProvider <-getParty "ScreeningProvider"
+  let
+    label = observationReference
+    consumer = Consumer with party = analyst
+  submit cipProvider $ create Publication with
+    observation = Observation with label; time = appStartTime; value = createCIP 1
+    publisher = Publisher with party = cipProvider
+    consumer
+    published = appStartTime
+    operator
+  submit screeningProvider $ create Publication with
+    observation = Observation with label; time = appStartTime; value = createScreening 1
+    publisher = Publisher with party = screeningProvider
+    consumer
+    published = appStartTime
+    operator
+  submit analyst $ create ResearchProcess with
+    analyst
+    reviewer
+    qualityAssurance
+    reference = observationReference
+    lastChecked = None

@@ -1,0 +1,41 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoReviewTestSetup where
+
+import DA.Time
+
+import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.RefApps.KnowYourCustomer.Types
+
+setup : Scenario ()
+setup = scenario do
+  reviewer <- getParty "KYC_Reviewer"
+  setupReviewRequest reviewer
+  pure ()
+
+setupReviewRequest : Party -> Scenario (ContractId ReviewRequest)
+setupReviewRequest reviewer = scenario $ do
+    operator <- getParty "Operator"
+    analyst <- getParty "KYC_Analyst"
+    qualityAssurance <- getParty "KYC_QA"
+
+    submit analyst $
+      create ReviewRequest with
+        analyst
+        reviewer
+        qualityAssurance
+        time = someTime
+        researchData
+        reference = someReference
+        lastChecked = None
+  where
+    someReference = ObservationReference "something" True True True
+    someTime = addRelTime appStartTime (hours 1)
+    researchData =   ResearchData with
+      researchCip = NotAvailable
+      researchCdd = NotAvailable
+      researchScreening = NotAvailable

@@ -1,0 +1,196 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.TimeService.TimeServiceTest where
+
+import DA.Time
+import DA.Date
+import DA.Assert
+import DA.TimeService.TimeService
+
+data TestData = TestData with
+  operator: Party
+  alice: Party
+  now: Time
+  later: Time
+  modelPeriodTime: RelTime
+  currentTime: ContractId CurrentTime
+  configuration: ContractId TimeConfiguration
+  manager: ContractId TimeManager
+
+setupTimeTestWithAlice : Scenario TestData
+setupTimeTestWithAlice = scenario do
+  operator <- getParty "Operator"
+  alice <- getParty "Alice"
+  let
+    today = date 2019 Nov 12
+    now = time today 14 57 0
+    modelPeriodTime = hours 1
+    later = addRelTime now modelPeriodTime
+  now =/= later
+  currentTime <- submit operator do
+    create CurrentTime with
+      operator = operator
+      currentTime = now
+      observers = [alice]
+  configuration <- submit operator do
+    create TimeConfiguration with
+      operator = operator
+      isRunning = True
+      modelPeriodTime
+  manager <- submit operator do
+    create TimeManager with
+      operator = operator
+  return TestData with ..
+
+testTwoConcurrentTimeServicesWithDifferentKeysShowDifferentTime : Scenario ()
+testTwoConcurrentTimeServicesWithDifferentKeysShowDifferentTime = scenario do
+  testData <- setupTimeTestWithAlice
+  operatorForBob <- getParty "OperatorForBob"
+  bob <- getParty "Bob"
+  let
+    operatorForAlice = testData.operator
+    timeAlice = testData.now
+    timeBob = testData.later
+  timeAlice =/= timeBob
+
+  submit operatorForBob do
+    create CurrentTime with
+      operator = operatorForBob
+      currentTime = timeBob
+      observers = [bob]
+
+  submit testData.alice do
+    t <- fetchTime operatorForAlice
+    t === timeAlice
+
+  submit bob do
+    t <- fetchTime operatorForBob
+    t === timeBob
+
+testTimeNowWorksForEveryObserver : Scenario ()
+testTimeNowWorksForEveryObserver = scenario do
+  testData <- setupTimeTestWithAlice
+
+  bob <- getParty "Bob"
+  currentTime <- submit testData.operator do
+    exercise testData.manager AddObserver with newObserver = bob
+
+  submit testData.alice do
+    t <- fetchTime testData.operator
+    t === testData.now
+
+  submit bob do
+    t <- fetchTime testData.operator
+    t === testData.now
+
+  submit testData.operator do
+    exercise testData.manager AdvanceCurrentTime
+
+  submit testData.alice do
+    t <- fetchTime testData.operator
+    t === testData.later
+
+  submit bob do
+    t <- fetchTime testData.operator
+    t === testData.later
+
+testTimeCannotBeCreatedByOthers : Scenario ()
+testTimeCannotBeCreatedByOthers = scenario do
+  operator <- getParty "Operator"
+  alice <- getParty "Alice"
+  let
+    currentTime = time (date 2019 Nov 12) 14 57 0
+
+  submitMustFail alice do
+    create CurrentTime with
+      operator
+      currentTime
+      observers = []
+
+testTimeCannotBeManipulatedByOthers : Scenario ()
+testTimeCannotBeManipulatedByOthers = scenario do
+  testData <- setupTimeTestWithAlice
+  submitMustFail testData.alice do
+    exercise testData.currentTime UpdateCurrentTime with newCurrentTime = testData.later
+  submitMustFail testData.alice do
+    exercise testData.manager SetCurrentTime with newCurrentTime = testData.later
+
+testTimeNotAdvancesWhenStopped : Scenario ()
+testTimeNotAdvancesWhenStopped = scenario do
+  testData <- setupTimeTestWithAlice
+
+  submit testData.operator do
+    exercise testData.manager Stop
+    exercise testData.manager AdvanceCurrentTime
+    t <- fetchTime testData.operator
+    t === testData.now
+
+testTimeCanBeContinued : Scenario ()
+testTimeCanBeContinued = scenario do
+  testData <- setupTimeTestWithAlice
+
+  submit testData.operator do
+    exercise testData.manager Stop
+    exercise testData.manager Continue
+    exercise testData.manager AdvanceCurrentTime
+    t <- fetchTime testData.operator
+    t === testData.later
+
+testSetModelPeriodTime : Scenario ()
+testSetModelPeriodTime = scenario do
+  testData <- setupTimeTestWithAlice
+  let
+    newModelPeriodTime = minutes 45
+    someOtherTime = addRelTime testData.now newModelPeriodTime
+
+  submit testData.operator do
+    exercise testData.manager SetModelPeriodTime with
+      newModelPeriodTime = newModelPeriodTime
+    exercise testData.manager AdvanceCurrentTime
+    t <- fetchTime testData.operator
+    t === someOtherTime
+
+testModelTimeAdvancesContinually : Scenario ()
+testModelTimeAdvancesContinually = scenario do
+  testData <- setupTimeTestWithAlice
+  let
+    someTime = addRelTime testData.now testData.modelPeriodTime
+    afterSomeTime = addRelTime someTime testData.modelPeriodTime
+
+  submit testData.operator do
+    exercise testData.manager AdvanceCurrentTime
+    exercise testData.manager AdvanceCurrentTime
+    t <- fetchTime testData.operator
+    t === afterSomeTime
+
+testTimeContractIsUnique : Scenario ()
+testTimeContractIsUnique = scenario do
+  testData <- setupTimeTestWithAlice
+
+  submitMustFail testData.operator do
+    create CurrentTime with
+      operator = testData.operator
+      currentTime = testData.now
+      observers = []
+
+testUpdateCurrentTime : Scenario ()
+testUpdateCurrentTime = scenario do
+  testData <- setupTimeTestWithAlice
+
+  submit testData.operator do
+    exercise testData.currentTime UpdateCurrentTime with newCurrentTime = testData.later
+    t <- fetchTime testData.operator
+    t === testData.later
+
+testSetCurrentTime : Scenario ()
+testSetCurrentTime = scenario do
+  testData <- setupTimeTestWithAlice
+
+  submit testData.operator do
+    exercise testData.manager SetCurrentTime with newCurrentTime = testData.later
+    t <- fetchTime testData.operator
+    t === testData.later

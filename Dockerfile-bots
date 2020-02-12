@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+#
+
+FROM openjdk:8-jre-alpine
+
+WORKDIR /home/sdk
+
+VOLUME /home/sdk/data
+
+COPY target/know-your-customer-docker.jar know-your-customer-docker.jar
+COPY target/lib/* /home/sdk/lib/
+
+ENTRYPOINT java -jar know-your-customer-docker.jar -s ${SANDBOX_HOST} -p ${SANDBOX_PORT}

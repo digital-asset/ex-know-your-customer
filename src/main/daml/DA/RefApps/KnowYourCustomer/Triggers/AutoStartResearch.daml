@@ -1,0 +1,81 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable
+import DA.Time
+import DA.Action
+import DA.Optional
+
+import DA.RefApps.KnowYourCustomer.Triggers.Logging
+import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.DataLicense
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.KycExtension
+
+-- This trigger looks for Research Licenses (which are the results of
+-- the following process: request - propose price - accept) and
+--  1) starts a Research Process for each,
+--  2) registers each
+autoStartResearchProcessTrigger : Trigger ()
+autoStartResearchProcessTrigger =
+    createAutoStartResearchProcessTrigger reviewer qualityAssurance
+  where
+    reviewer = fromSome (partyFromText "KYC_Reviewer")
+    qualityAssurance = fromSome (partyFromText "KYC_QA")
+
+createAutoStartResearchProcessTrigger : Party -> Party -> Trigger ()
+createAutoStartResearchProcessTrigger reviewer qualityAssurance = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = startResearchProcess reviewer qualityAssurance
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @EmptyDataStream
+    , registeredTemplate @PublisherConsumerRelationship
+    , registeredTemplate @DataLicense
+    , registeredTemplate @PublisherRole
+    ]
+  , heartbeat = None
+  }
+
+startResearchProcess : Party -> Party -> Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+startResearchProcess reviewer qualityAssurance actualParty activeContracts _ _ () = do
+  let licenses = getContracts @DataLicense activeContracts
+      researchLicensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == actualParty) licenses
+      publisherRoles = getContracts @PublisherRole activeContracts
+      ownPublisherRoles = filter (\(_, r) -> r.publisher.party == actualParty) publisherRoles
+
+  case ownPublisherRoles of
+    [(ourPublisherRoleCid, ourPublisherRole)] ->
+      forA_ researchLicensesToRegister $ \(lCid, l) -> do
+        debug $ "Triggered by research request: " <> (show l)
+        debug $ "Triggered by role: " <> (show ourPublisherRole)
+        when (ourPublisherRole.operator == l.licenseData.operator) $ do
+          debugLog "StartResearchProcess" actualParty $
+            "Automatically registering license and starting research process: " <>
+                show l.licenseData.reference
+          emitCommands [exerciseCmd ourPublisherRoleCid RegisterLicense with licenseId = lCid] [toAnyContractId lCid]
+          dedupCreate ResearchProcess with
+            analyst = actualParty
+            reviewer = reviewer
+            qualityAssurance = qualityAssurance
+            reference = l.licenseData.reference
+            lastChecked = None
+    [] ->
+      pure ()
+    other ->
+      error $ "There are more than one publisher role contracts: " <> show other
+
+startingDate : Time
+startingDate = addRelTime appStartTime (hours 1)
+
+endingDate : Time
+endingDate = addRelTime appStartTime (days 500)

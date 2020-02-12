@@ -1,0 +1,44 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnStartedDataStreamTestSetup where
+
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Types
+import Test.DA.RefApps.KnowYourCustomer.RolesTest
+import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
+import Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup
+
+setup : Scenario ()
+setup = scenario $ do
+  analyst <- getParty "KYC_Analyst"
+  reviewer <- getParty "KYC_Reviewer"
+
+  stream <- setupToMergeRawPublicationsOnEmptyDataStream
+
+  let newObservation =
+        Observation with
+          label = reference
+          time = appStartTime
+          value = Research with -- any observation value just to start the EmptyDataStream
+            reviewedBy = reviewer
+            verifiedByQA = True
+            researchData
+
+  submit analyst $ exercise stream StartDataStream with newObservation
+
+  pure ()
+  where
+    reference = ObservationReference with
+      customerName = "ACME"
+      includeCIP = True
+      includeCDD = False
+      includeScreening = True
+
+    researchData = ResearchData with
+      researchCip = Data $ createCIPData 1
+      researchCdd = NotAvailable
+      researchScreening = Data $ createScreeningData 1

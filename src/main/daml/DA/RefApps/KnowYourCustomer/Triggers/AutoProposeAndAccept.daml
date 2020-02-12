@@ -1,0 +1,53 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable
+
+import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.Types
+
+autoProposeTrigger : Trigger ()
+autoProposeTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = autoPropose
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @DataStreamRequest
+    ]
+  , heartbeat = None
+  }
+
+autoAcceptTrigger : Trigger ()
+autoAcceptTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = autoAccept
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @DataLicenseProposal
+    ]
+  , heartbeat = None
+  }
+
+autoPropose : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+autoPropose party activeContracts _ _ () = do
+  let dataStreamRequests = getContracts @DataStreamRequest activeContracts
+      ownDataStreamRequests = filter (\(_, dsr) -> dsr.publisher.party == party) dataStreamRequests
+
+  forA_ ownDataStreamRequests $ \(dsrCid, _) ->
+    dedupExercise dsrCid DataStreamRequest_Propose with price = SubscriptionFee 100.0
+
+autoAccept : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+autoAccept party activeContracts _ _ () = do
+  let dataLicenseProposals = getContracts @DataLicenseProposal activeContracts
+      ownDataLicenseProposals = filter (\(_, dlp) -> dlp.consumer.party == party) dataLicenseProposals
+
+  forA_ ownDataLicenseProposals $ \(dlpCid, _) ->
+    dedupExercise dlpCid DataLicenseProposal_Accept

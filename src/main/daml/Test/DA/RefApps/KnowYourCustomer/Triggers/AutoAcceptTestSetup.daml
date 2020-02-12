@@ -1,0 +1,22 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup where
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Roles
+import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup as AutoProposeTestSetup
+
+setup : Scenario (ContractId DataLicenseProposal)
+setup = scenario $ do
+    kycAnalyst <- getParty "KYC_Analyst"
+    cipProviderParty <- getParty "CIP_Provider"
+    setupConsumerProviderHierarchyWithProposal kycAnalyst cipProviderParty
+
+setupConsumerProviderHierarchyWithProposal : Party -> Party -> Scenario (ContractId DataLicenseProposal)
+setupConsumerProviderHierarchyWithProposal consumer provider = scenario $ do
+    request <- AutoProposeTestSetup.setupConsumerProviderHierarchy consumer provider
+    provider `submit` exercise request DataStreamRequest_Propose with price = SubscriptionFee 1.0

@@ -1,0 +1,46 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable
+import DA.Action
+
+import DA.RefApps.KnowYourCustomer.Triggers.Logging
+import DA.RefApps.KnowYourCustomer.DataLicense
+import DA.RefApps.KnowYourCustomer.Roles
+
+automaticLicenseRegistrarTrigger : Trigger ()
+automaticLicenseRegistrarTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = autoLicenseRegistrar
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @DataLicense
+    , registeredTemplate @PublisherRole
+    ]
+  , heartbeat = None
+  }
+
+autoLicenseRegistrar : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+autoLicenseRegistrar party activeContracts _ _ () = do
+  let licenses = getContracts @DataLicense activeContracts
+      licensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == party) licenses
+      publisherRoles = getContracts @PublisherRole activeContracts
+      ourPublisherRoles = filter (\(_, r) -> r.publisher.party == party) publisherRoles
+
+  forA_ licensesToRegister $ \(lCid, l) -> do
+    log $ "Triggered by license: " <> (show l)
+    forA_ ourPublisherRoles $ \(rCid, r) -> do
+      log $ "Triggered by role: " <> (show r)
+      when (r.operator == l.licenseData.operator) $ do
+        log $ "Automatically registering license: " <> (show l)
+        dedupExercise rCid RegisterLicense with licenseId = lCid
+  where
+    log = debugLog "AutoLicenseRegistrar" party

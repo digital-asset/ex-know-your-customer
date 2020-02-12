@@ -1,0 +1,259 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.Roles where
+
+import DA.Time
+import DA.TimeService.TimeService
+import DA.Functor
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.DataLicense
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.DataSource
+
+data PublisherRelationship = PublisherRelationship
+  with
+    publisherConsumerRelationship: ContractId PublisherConsumerRelationship
+    publisherRole: ContractId PublisherRole
+
+template OperatorRole
+  with
+    operator: Party
+  where
+    signatory operator
+
+    controller operator can
+      nonconsuming InvitePublisherConsumer: (ContractId PublisherInvitation, ContractId PublisherRoleInvitation)
+        with
+          publisher: Publisher
+          consumer: Consumer
+        do
+          pubI <- create PublisherInvitation with ..
+          pubRoleI <- create PublisherRoleInvitation with ..
+          return (pubI, pubRoleI)
+      nonconsuming InviteNewConsumerForPublisher: ContractId PublisherInvitation
+        with
+          publisher: Publisher
+          consumer: Consumer
+        do
+          create PublisherInvitation with ..
+      nonconsuming InviteDataProvider: ContractId DataProviderInvitation
+        with
+          dataProvider: Party
+        do
+          create DataProviderInvitation with operator, dataProvider
+
+template DataProviderInvitation
+  with
+    operator: Party
+    dataProvider: Party
+  where
+    signatory operator
+
+    controller dataProvider can
+      DataProviderInvitation_Accept: ContractId DataProviderRole
+        do create DataProviderRole with operator, dataProvider
+
+template DataProviderRole
+  with
+    operator: Party
+    dataProvider: Party
+  where
+    signatory operator, dataProvider
+
+    controller dataProvider can
+      nonconsuming LoadCsvDataFromPath: ()
+        with
+          reference: ObservationReference
+          path: Text
+        do
+          void $ create DataSource with
+            owner = dataProvider
+            operator
+            observers = []
+            reference
+            path
+
+template PublisherInvitation
+  with
+    operator: Party
+    publisher: Publisher
+    consumer: Consumer
+  where
+    signatory operator
+
+    controller publisher.party can
+      PublisherInvitation_Accept: ContractId ConsumerInvitation
+        do create ConsumerInvitation with ..
+
+      PublisherInvitation_Reject: ()
+        do return ()
+
+template ConsumerInvitation
+  with
+    operator: Party
+    publisher: Publisher
+    consumer: Consumer
+  where
+    signatory operator, publisher.party
+
+    controller consumer.party can
+      ConsumerInvitation_Accept: ContractId PublisherConsumerRelationship
+        do create PublisherConsumerRelationship with ..
+
+      ConsumerInvitation_Reject: ()
+        do return ()
+
+template DataStreamRequest
+  with
+    operator: Party
+    consumer: Consumer
+    publisher: Publisher
+    reference: ObservationReference
+    starting: Time
+    ending: Time
+    stale: RelTime
+  where
+    signatory operator, consumer.party
+    observer publisher.party
+    ensure starting < ending
+
+    controller publisher.party can
+      DataStreamRequest_Propose: ContractId DataLicenseProposal
+        with
+          price : SubscriptionFee
+        do create DataLicenseProposal with ..
+
+      DataStreamRequest_Reject: ()
+        do return ()
+
+template DataLicenseProposal
+  with
+    publisher: Publisher
+    consumer: Consumer
+    reference: ObservationReference
+    starting: Time
+    ending: Time
+    stale: RelTime
+    price : SubscriptionFee
+    operator: Party
+  where
+  signatory publisher.party, consumer.party
+  controller consumer.party can
+    DataLicenseProposal_Accept: ContractId DataLicense
+      do create DataLicense with
+              licenseData =
+                LicenseData with
+                    publisher
+                    consumer
+                    reference
+                    starting
+                    ending
+                    stale
+                    price
+                    operator
+    DataLicenseProposal_Reject: ()
+      do return ()
+
+data SomeDataStream = EDS (ContractId EmptyDataStream)
+                    | DS (ContractId DataStream)
+
+template PublisherConsumerRelationship
+  with
+    operator: Party
+    publisher: Publisher
+    consumer: Consumer
+  where
+    signatory operator, publisher.party, consumer.party
+
+    controller consumer.party can
+      nonconsuming RequestStandardAnnualStream: ContractId DataStreamRequest
+        with
+          reference: ObservationReference
+        do
+          currentTime <- fetchTime operator
+          create DataStreamRequest with
+            starting = appStartTime
+            stale = hours 3
+            ending = addRelTime currentTime $ days 366
+            ..
+
+    controller consumer.party can
+      nonconsuming RequestStandardStream: ContractId DataStreamRequest
+        with
+          reference: ObservationReference
+          ending: Time
+        do
+          create DataStreamRequest with
+            starting = appStartTime
+            stale = hours 3
+            ..
+
+    controller consumer.party can
+      nonconsuming RequestStream: ContractId DataStreamRequest
+        with
+          reference: ObservationReference
+          starting: Time
+          ending: Time
+          staleHours: Int
+        do
+          create DataStreamRequest with
+            stale = hours staleHours
+            ..
+
+template PublisherRoleInvitation
+  with
+    operator: Party
+    publisher: Publisher
+  where
+    signatory operator
+
+    controller publisher.party can
+      PublisherRoleInvitation_Accept: ContractId PublisherRole
+        do
+          mbPublisherRole <- lookupByKey @PublisherRole publisher
+          case mbPublisherRole of
+            Some publisherRole ->
+              pure publisherRole
+            None ->
+              create PublisherRole with ..
+
+      PublisherRoleInvitation_Reject: ()
+        do return ()
+
+template PublisherRole
+  with
+    operator: Party
+    publisher: Publisher
+  where
+    signatory operator, publisher.party
+    key publisher : Publisher
+    maintainer key.party
+
+    controller publisher.party can
+      nonconsuming RegisterLicense: SomeDataStream
+        with
+          licenseId: ContractId DataLicense
+        do
+          license <- fetch licenseId
+          assert (publisher.party == license.licenseData.publisher.party)
+          streamIdOpt <- lookupByKey @DataStream (publisher, license.licenseData.reference)
+          emptyStreamIdOpt <- lookupByKey @EmptyDataStream (publisher, license.licenseData.reference)
+          case (emptyStreamIdOpt, streamIdOpt) of
+            (Some emptyStreamId, None) -> do
+              EDS <$> exercise emptyStreamId AddConsumer with dataLicenseId = licenseId
+            (None, Some streamId) -> do
+              DS <$> exercise streamId AddConsumerDuringOperations with dataLicenseId = licenseId
+            (None, None) -> do
+              emptyStreamId <- create EmptyDataStream
+                with
+                  reference = license.licenseData.reference
+                  consumers = []
+                  ..
+              EDS <$> exercise emptyStreamId AddConsumer with dataLicenseId = licenseId
+            (Some _, Some _) -> do
+              error "Inconsistent DataStream"

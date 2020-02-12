@@ -1,0 +1,9 @@
+digraph {
+
+"CDD_Provider" -> Analyst;
+"CIP_Provider" -> Analyst;
+"ScreeningProvider" -> Analyst;
+Analyst -> Bank1;
+Analyst -> Bank2;
+
+}

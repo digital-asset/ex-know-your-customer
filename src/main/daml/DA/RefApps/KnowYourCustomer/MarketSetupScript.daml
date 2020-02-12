@@ -1,0 +1,212 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+{-# LANGUAGE ApplicativeDo #-}
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.MarketSetupScript where
+
+import DA.Time as T
+import Daml.Script
+import Prelude hiding (submit, submitMustFail)
+import DA.Assert
+import DA.TimeService.TimeService
+import DA.Optional (fromSome)
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.DataLicense
+
+data MarketSetupData = MarketSetupData
+  with
+    cipStream: ContractId DataLicense
+    cddStream: ContractId DataLicense
+    screeningStream: ContractId DataLicense
+    kycBankRelation: PublisherRelationship
+    kycStream: ContractId DataLicense
+
+data LedgerParties = LedgerParties with
+  operator              : Party
+  cipProviderParty      : Party
+  cddProviderParty      : Party
+  screeningProviderParty: Party
+  kycAnalystParty       : Party
+  kycReviewerParty      : Party
+  kycQAParty            : Party
+  bank1Party            : Party
+  bank2Party            : Party
+
+initialize : LedgerParties -> Script MarketSetupData
+initialize parties = do
+  let starting = addRelTime appStartTime (hours 1)
+      ending = addRelTime appStartTime (days 366)
+      staleHours = 25
+      modelPeriodTime = hours 12
+      reference = ObservationReference
+          with
+              customerName = "ACME"
+              includeCIP = True
+              includeCDD = False
+              includeScreening = True
+
+  debug "Creating current time"
+  currentTimeCid <- submit parties.operator do
+    createCmd CurrentTime with
+      operator = parties.operator
+      currentTime = appStartTime
+      observers = [parties.cipProviderParty, parties.cddProviderParty, parties.screeningProviderParty, parties.kycAnalystParty,
+                   parties.kycReviewerParty, parties.kycQAParty, parties.bank1Party, parties.bank2Party]
+
+  debug "Creating time configuration"
+  timeConfigurationCid <- submit parties.operator do
+    createCmd TimeConfiguration with
+      operator = parties.operator
+      isRunning = False
+      modelPeriodTime = modelPeriodTime
+
+  debug "Creating time manager"
+  timeManagerCid <- submit parties.operator do
+    createCmd TimeManager with
+            operator = parties.operator
+
+  debug "Creating operator role"
+  operatorRole <- submit parties.operator $ createCmd (OperatorRole with operator = parties.operator)
+
+  debug "Loading CSV data sources"
+  providerRoleInvitation <- parties.operator `submit` exerciseCmd operatorRole
+    InviteDataProvider with dataProvider = parties.cipProviderParty
+  providerRole1 <- parties.cipProviderParty `submit` exerciseCmd providerRoleInvitation DataProviderInvitation_Accept
+  parties.cipProviderParty `submit` exerciseCmd providerRole1
+    LoadCsvDataFromPath with
+      reference = reference
+      path = "ACME-CIP.csv"
+
+  providerRoleInvitation <- parties.operator `submit` exerciseCmd operatorRole
+    InviteDataProvider with dataProvider = parties.cddProviderParty
+  providerRole2 <- parties.cddProviderParty `submit` exerciseCmd providerRoleInvitation DataProviderInvitation_Accept
+  parties.cddProviderParty `submit` exerciseCmd providerRole2
+    LoadCsvDataFromPath with
+      reference = reference
+      path = "ACME-CDD.csv"
+
+  providerRoleInvitation <- parties.operator `submit` exerciseCmd operatorRole
+    InviteDataProvider with dataProvider = parties.screeningProviderParty
+  providerRole3 <- parties.screeningProviderParty `submit` exerciseCmd providerRoleInvitation DataProviderInvitation_Accept
+  parties.screeningProviderParty `submit` exerciseCmd providerRole3
+    LoadCsvDataFromPath with
+        reference = reference
+        path = "ACME-Screening.csv"
+
+  debug "Creating relationships"
+  provider1kycRelation <- createRelationship parties.operator operatorRole parties.cipProviderParty parties.kycAnalystParty
+  provider2kycRelation <- createRelationship parties.operator operatorRole parties.cddProviderParty parties.kycAnalystParty
+  provider3kycRelation <- createRelationship parties.operator operatorRole parties.screeningProviderParty parties.kycAnalystParty
+  kycBank1Relation <- createRelationship parties.operator operatorRole parties.kycAnalystParty parties.bank1Party
+  kycBank2Relation <- inviteConsumer parties.operator operatorRole parties.kycAnalystParty parties.bank2Party
+
+  debug "Creating licenses"
+  cipStream <- createLicense parties.cipProviderParty parties.kycAnalystParty provider1kycRelation reference starting ending staleHours
+  cddStream <- createLicense parties.cddProviderParty parties.kycAnalystParty provider2kycRelation reference starting ending staleHours
+  screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting ending staleHours
+  kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting ending staleHours
+
+  pure $ MarketSetupData cipStream cddStream screeningStream kycBank1Relation kycStream
+
+-- Proper way of handling parties
+-- Not appropriate for demo (partyIds are not human readable)
+setupMarket : Script ()
+setupMarket = do
+  operator               <- allocateParty "Operator"
+  cipProviderParty       <- allocateParty "CIP_Provider"
+  cddProviderParty       <- allocateParty "CDD_Provider"
+  screeningProviderParty <- allocateParty "ScreeningProvider"
+  kycAnalystParty        <- allocateParty "KYC_Analyst"
+  kycReviewerParty       <- allocateParty "KYC_Reviewer"
+  kycQAParty             <- allocateParty "KYC_QA"
+  bank1Party             <- allocateParty "Bank1"
+  bank2Party             <- allocateParty "Bank2"
+  let
+    parties = (LedgerParties
+      operator
+      cipProviderParty
+      cddProviderParty
+      screeningProviderParty
+      kycAnalystParty
+      kycReviewerParty
+      kycQAParty
+      bank1Party
+      bank2Party)
+  initialize parties
+
+  times <- query @CurrentTime operator
+  assertEq [operator] (map (\x -> (snd x).operator) times)
+  pure ()
+
+-- Appropriate for demo (partyIds are human readable)
+-- No proper party allocation on the ledger
+setupMarketForSandbox : Script ()
+setupMarketForSandbox = do
+  let
+    operator               = fromSome (partyFromText "Operator")
+    cipProviderParty       = fromSome (partyFromText "CIP_Provider")
+    cddProviderParty       = fromSome (partyFromText "CDD_Provider")
+    screeningProviderParty = fromSome (partyFromText "ScreeningProvider")
+    kycAnalystParty        = fromSome (partyFromText "KYC_Analyst")
+    kycReviewerParty       = fromSome (partyFromText "KYC_Reviewer")
+    kycQAParty             = fromSome (partyFromText "KYC_QA")
+    bank1Party             = fromSome (partyFromText "Bank1")
+    bank2Party             = fromSome (partyFromText "Bank2")
+    parties = (LedgerParties
+      operator
+      cipProviderParty
+      cddProviderParty
+      screeningProviderParty
+      kycAnalystParty
+      kycReviewerParty
+      kycQAParty
+      bank1Party
+      bank2Party)
+  initialize parties
+  pure ()
+
+subscriptionFee : SubscriptionFee
+subscriptionFee = SubscriptionFee 10.000
+
+createRelationship : Party -> ContractId OperatorRole -> Party -> Party
+                  -> Script PublisherRelationship
+createRelationship operator operatorRole publisher consumer = do
+  let p = Publisher with party = publisher
+      c = Consumer with party = consumer
+  debug $ "Creating relationship: publisher=" <> show publisher <> ", consumer=" <> show consumer
+  (relationRequest, pubRoleInvitation) <- operator `submit` exerciseCmd operatorRole InvitePublisherConsumer with publisher = p, consumer = c
+  publisherAccept <- publisher `submit` exerciseCmd relationRequest PublisherInvitation_Accept
+  relationship <- consumer `submit` exerciseCmd publisherAccept ConsumerInvitation_Accept
+  debug "Created relationship."
+  publisherRole <- publisher `submit` exerciseCmd pubRoleInvitation PublisherRoleInvitation_Accept
+  pure $ PublisherRelationship relationship publisherRole
+
+inviteConsumer : Party -> ContractId OperatorRole -> Party -> Party
+                  -> Script (ContractId PublisherConsumerRelationship)
+inviteConsumer operator operatorRole publisher consumer = do
+  let p = Publisher with party = publisher
+      c = Consumer with party = consumer
+  debug $ "Creating relationship: publisher=" <> show publisher <> ", consumer=" <> show consumer
+  relationRequest <- operator `submit` exerciseCmd operatorRole InviteNewConsumerForPublisher with publisher = p, consumer = c
+  publisherAccept <- publisher `submit` exerciseCmd relationRequest PublisherInvitation_Accept
+  relationship <- consumer `submit` exerciseCmd publisherAccept ConsumerInvitation_Accept
+  debug "Created relationship."
+  pure relationship
+
+createLicense : Party -> Party -> PublisherRelationship ->
+                ObservationReference -> Time -> Time -> Int ->
+                Script (ContractId DataLicense)
+createLicense publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours = do
+  debug $ "Creating license: publisher=" <> show publisher <> ", consumer=" <> show consumer
+  request <- consumer `submit` exerciseCmd relationship RequestStream
+    with reference, starting, ending, staleHours
+  proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price = subscriptionFee
+  license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
+  debug "Created license."
+  pure license

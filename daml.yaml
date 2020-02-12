@@ -1,0 +1,31 @@
+#
+# Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+sdk-version: 0.13.50
+name: know-your-customer
+source: src/main/daml
+parties:
+  - CIP_Provider
+  - CDD_Provider
+  - ScreeningProvider
+  - KYC_Analyst
+  - KYC_Reviewer
+  - KYC_QA
+  - Bank1
+  - Bank2
+  - Operator
+version: 1.0.0
+exposed-module: []
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+  - daml-trigger
+build-options:
+  - '--target=1.7'
+  - '--ghc-option'
+  - '-Werror'
+  - '--ghc-option'
+  - '-Wunused-binds'

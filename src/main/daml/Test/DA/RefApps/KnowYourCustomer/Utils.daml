@@ -1,0 +1,31 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Utils where
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Roles
+
+createRelationship : Party -> ContractId OperatorRole -> Party -> Party
+                  -> Scenario PublisherRelationship
+createRelationship operator operatorRole publisher consumer = do
+  let p = Publisher with party = publisher
+      c = Consumer with party = consumer
+  (relationRequest, roleRequest) <- operator `submit` exercise operatorRole InvitePublisherConsumer with publisher = p, consumer = c
+  publisherAccept <- publisher `submit` exercise relationRequest PublisherInvitation_Accept
+  publisherRole <- publisher `submit` exercise roleRequest PublisherRoleInvitation_Accept
+  relationship <- consumer `submit` exercise publisherAccept ConsumerInvitation_Accept
+  return $ PublisherRelationship relationship publisherRole
+
+createDataStream : Party -> Party -> PublisherRelationship ->
+                   ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
+                   Scenario SomeDataStream
+createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
+  request <- consumer `submit` exercise relationship RequestStream
+    with reference, starting, ending, staleHours
+  proposal <- publisher `submit` exercise request DataStreamRequest_Propose with price
+  license <- consumer `submit` exercise proposal DataLicenseProposal_Accept
+  publisher `submit` exercise pubRole RegisterLicense with licenseId = license

@@ -1,0 +1,123 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable
+import DA.Optional
+import DA.List.Total
+import DA.Action
+
+import DA.RefApps.KnowYourCustomer.DataStream hiding (observation, published)
+import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Publication
+import DA.RefApps.KnowYourCustomer.Triggers.Logging
+
+mergeAndPublishResearchDataTrigger : Trigger ()
+mergeAndPublishResearchDataTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = mergeAndPublishResearchDataRule
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @Publication
+    , registeredTemplate @EmptyDataStream
+    , registeredTemplate @DataStream
+    , registeredTemplate @ResearchProcess
+    , registeredTemplate @ResearchResult
+    ]
+  , heartbeat = None
+  }
+
+mergeAndPublishResearchDataRule : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+mergeAndPublishResearchDataRule party activeContracts _ _ () = do
+  -- Get publications where 'party' gets data, i.e. consumer
+  let publications = getContracts @Publication activeContracts
+      ownPublications = filter (\(_, p) -> p.consumer.party == party) publications
+  -- Get data streams where 'party' provides data to, i.e. publisher
+      dataStreams = getContracts @DataStream activeContracts
+      ownDataStreams = filter (\(_, s) -> s.publisher.party == party) dataStreams
+  -- Get empty streams to start them
+      emptyDataStreams = getContracts @EmptyDataStream activeContracts
+      ownEmptyDataStreams = filter (\(_, s) -> s.publisher.party == party) emptyDataStreams
+      researchProcess = getContracts @ResearchProcess activeContracts
+      researchResults = getContracts @ResearchResult activeContracts
+
+  forA_
+    researchProcess
+    (\(rpCid, rp) -> do
+      let mbResearchData = createMergedObservation rp.reference $ map snd ownPublications
+      whenSome mbResearchData $ \(time, researchData) -> do
+        when (Some time /= rp.lastChecked) $ do
+          log $ "Merged research: " <> show mbResearchData <> " " <> show rp
+          dedupExercise rpCid SendToReview with researchData, time)
+
+  forA_
+    researchResults
+    (\(rrCid, rr) -> do
+      let observation = Observation rr.reference rr.time $ Research rr.researchData rr.reviewer rr.verifiedByQA
+      forA_ ownEmptyDataStreams (\(sCid, s) ->
+        when (s.reference == rr.reference) $ do
+          log $ "Starting stream: " <> show s
+          dedupExercise sCid StartDataStream with newObservation = observation
+          dedupExercise rrCid MarkProcessed with cause = "Automatic processing (empty data stream).")
+
+      forA_ ownDataStreams (\(sCid, s) ->
+        when (s.observation.label == rr.reference && s.observation.time < observation.time) $ do
+          log $ "Updating observation on stream: " <> show s
+          dedupExercise sCid UpdateObservation with time = observation.time, newValue = observation.value
+          dedupExercise rrCid MarkProcessed with cause = "Automatic processing. (data stream)."))
+  where
+    log = debugLog "MergeAndPublishResearchData" party
+
+observationHasChanged : Observation -> Observation -> Bool
+observationHasChanged old new = old.label == new.label && old.time < new.time
+
+-- Merges optionally earliest CIP, CDD, Screening observations into a ResearchData.
+-- Parameters:
+--  Observation reference to create a merged observation for
+--  Publications for that reference
+createMergedObservation : ObservationReference -> [Publication] -> Optional (Time, ResearchData)
+createMergedObservation ref@(ObservationReference customerName includeCIP includeCDD includeScreening) allPubs = do
+    debug $ show (earliestPublicationTime, getIfNeeded includeCIP getCIP, getIfNeeded includeCDD getCDD, getIfNeeded includeScreening getScreening)
+    pubTime <- earliestPublicationTime
+    cip <- getIfNeeded includeCIP getCIP
+    cdd <- getIfNeeded includeCDD getCDD
+    screening <- getIfNeeded includeScreening getScreening
+    pure (pubTime, ResearchData cip cdd screening)
+  where
+    observationValues = map (.observation.value) pubsForThisRef
+    getIfNeeded : Bool -> (ObservationValue -> Optional a) -> Optional (OptionalData a)
+    getIfNeeded neededFlag unwrapperFunc =
+      if neededFlag then do
+        value <- getEarliestObservationValue (isSome . unwrapperFunc)
+        unwrapped <- unwrapperFunc value
+        pure $ Data unwrapped
+      else
+        Some NotAvailable
+    getEarliestObservationValue = flip find observationValues
+    earliestPublicationTime = published <$> head pubsForThisRef
+    pubsForThisRef = sortOn (.observation.time) $
+      filter (\p -> compareKycLabelCustomerNames p.observation.label ref) allPubs
+
+getCIP : ObservationValue -> Optional CipData
+getCIP (CIP v) = Some v
+getCIP _ = None
+
+getCDD : ObservationValue -> Optional CddData
+getCDD (CDD v) = Some v
+getCDD _ = None
+
+getScreening : ObservationValue -> Optional ScreeningData
+getScreening (Screening v) = Some v
+getScreening _ = None
+
+compareKycLabelCustomerNames : ObservationReference -> ObservationReference -> Bool
+compareKycLabelCustomerNames (ObservationReference customerName1 _ _ _) (ObservationReference customerName2 _ _ _) =
+  customerName1 == customerName2

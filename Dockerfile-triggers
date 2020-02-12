@@ -1,0 +1,19 @@
+#
+# Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+#
+
+ARG sdk_vsn=0.13.50
+
+FROM digitalasset/daml-sdk:${sdk_vsn}
+
+WORKDIR /home/daml
+
+COPY target/know-your-customer.dar /home/daml/
+COPY scripts/startTriggers.sh /home/daml/
+
+USER root
+RUN chown daml know-your-customer.dar
+RUN chmod +rx /home/daml/startTriggers.sh
+USER daml
+
+CMD ~/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"

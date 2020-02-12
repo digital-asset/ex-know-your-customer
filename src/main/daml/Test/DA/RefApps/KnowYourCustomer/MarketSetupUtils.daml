@@ -1,0 +1,38 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.MarketSetupUtils where
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.DataLicense
+import DA.RefApps.KnowYourCustomer.Roles
+
+createDataStream : Party -> Party -> PublisherRelationship ->
+                   ObservationReference -> Time -> Time -> Int ->
+                   Scenario (ContractId DataLicense)
+createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours = do
+  let price = SubscriptionFee 10.000
+  debug $ "Creating data stream: publisher=" <> show publisher <> ", consumer=" <> show consumer
+  request <- consumer `submit` exercise relationship RequestStream
+    with reference, starting, ending, staleHours
+  proposal <- publisher `submit` exercise request DataStreamRequest_Propose with price
+  license <- consumer `submit` exercise proposal DataLicenseProposal_Accept
+  stream <- publisher `submit` exercise pubRole RegisterLicense with licenseId = license
+  debug "Created data stream."
+  pure license
+
+createRelationship : Party -> ContractId OperatorRole -> Party -> Party
+                    -> Scenario PublisherRelationship
+createRelationship operator operatorRole publisher consumer = do
+  let p = Publisher with party = publisher
+      c = Consumer with party = consumer
+  debug $ "Creating relationship: publisher=" <> show publisher <> ", consumer=" <> show consumer
+  (relationRequest, roleRequest) <- operator `submit` exercise operatorRole InvitePublisherConsumer with publisher = p, consumer = c
+  publisherAccept <- publisher `submit` exercise relationRequest PublisherInvitation_Accept
+  publisherRole <- publisher `submit` exercise roleRequest PublisherRoleInvitation_Accept
+  relationship <- consumer `submit` exercise publisherAccept ConsumerInvitation_Accept
+  debug "Created relationship."
+  pure $ PublisherRelationship relationship publisherRole

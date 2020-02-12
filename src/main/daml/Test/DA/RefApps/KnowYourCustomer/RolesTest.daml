@@ -1,0 +1,82 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.RolesTest where
+
+import DA.Date
+import DA.Time as T
+import DA.TimeService.TimeService
+
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Roles
+
+import Test.DA.RefApps.KnowYourCustomer.Utils
+
+
+roleSetup :
+  Scenario (
+    ObservationReference, Observation, Party, Party,
+    PublisherRelationship,
+    Time, Time, ContractId CurrentTime, Party, ContractId EmptyDataStream, Int)
+roleSetup = scenario do
+  operator <- getParty "Operator"
+  kycAnalystParty <- getParty "KYC_Analyst"
+  bankParty <- getParty "EndUser"
+
+  let today = date 2019 Nov 12
+      now = T.time today 14 57 0
+  currentTimeCid <- operator `submit`
+    create CurrentTime with
+      operator
+      currentTime = now
+      observers = [kycAnalystParty, bankParty]
+
+  operatorRole <- operator `submit` create OperatorRole with operator
+
+  mdvCon1Relation <- createRelationship operator operatorRole kycAnalystParty bankParty
+
+  let
+    reference = ObservationReference with
+      customerName = "Some Text"
+      includeCIP = True
+      includeCDD = True
+      includeScreening = True
+    starting = addRelTime now (hours 1)
+    ending = addRelTime now (days 1)
+    staleHours = 3
+    afterExpiry = addRelTime ending (days 1)
+    currentObservation =
+      Observation with
+        label = reference
+        time = now
+        value = createCIP 1
+
+  mdvStream <- (createDataStream
+    kycAnalystParty bankParty mdvCon1Relation
+    reference starting ending staleHours (SubscriptionFee 10.0))
+  mdvStreamId
+    <- case mdvStream of
+        EDS actualStreamId ->
+            pure actualStreamId
+        _ ->
+            error "There should have been an empty data stream."
+
+  pure (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, kycAnalystParty, mdvStreamId, staleHours)
+
+createCIP : Int -> ObservationValue
+createCIP id =
+  CIP $ createCIPData id
+
+createCIPData : Int -> CipData
+createCIPData id =
+  CipData with
+      legalName = "Legal Name"
+      ssn = "SSN"
+      tin = "TIN" <> show id
+      naic = "NAIC"
+      address = "Address"
+      country = "Country"

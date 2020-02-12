@@ -1,0 +1,67 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable
+import DA.List.Total
+import DA.Optional
+import DA.Date
+
+import DA.TimeService.TimeService
+import DA.RefApps.KnowYourCustomer.KycExtension
+
+autoReviewTrigger : Trigger ()
+autoReviewTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = autoReview
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @ReviewRequest
+    ]
+  , heartbeat = None
+  }
+
+autoVerifyTrigger : Trigger ()
+autoVerifyTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = autoVerify
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @QualityAssuranceRequest,
+      registeredTemplate @CurrentTime
+    ]
+  , heartbeat = None
+  }
+
+autoReview : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+autoReview party activeContracts _ _ () = do
+  let reviewRequests = getContracts @ReviewRequest activeContracts
+      ownReviewRequests = filter (\(_, r) -> r.reviewer == party) reviewRequests
+
+  forA_ ownReviewRequests $ \(rCid, _) ->
+    dedupExercise rCid ApproveReview
+
+everyNthDay : Int
+everyNthDay = 3
+
+autoVerify : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+autoVerify party activeContracts _ _ () = do
+  let currentTimeContracts = getContracts @CurrentTime activeContracts
+      qaRequests = getContracts @QualityAssuranceRequest activeContracts
+      ownQaRequests = filter (\(_, r) -> r.qualityAssurance == party) qaRequests
+
+  whenSome (head currentTimeContracts) $ \(_, currentTime) ->
+    forA_ ownQaRequests $ \(qaCid, _) -> do
+      let (_year, _month, day) = toGregorian (toDateUTC currentTime.currentTime)
+          isNthDay = day % everyNthDay == 0
+      if isNthDay then
+        dedupExercise qaCid ApproveVerified
+      else
+        dedupExercise qaCid ApproveNotVerified

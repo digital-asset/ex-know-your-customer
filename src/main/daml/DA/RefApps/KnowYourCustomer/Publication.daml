@@ -1,0 +1,73 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.Publication where
+
+import DA.TimeService.TimeService
+
+import DA.RefApps.KnowYourCustomer.Types
+
+-- A single publication to a single consumer
+template Publication
+  with
+    observation: Observation
+    publisher: Publisher
+    consumer: Consumer
+    published: Time
+    operator: Party
+  where
+    signatory publisher.party
+    observer consumer.party
+
+    key (publisher, consumer, observation.label): PublicationKey
+    maintainer key._1.party
+
+    controller publisher.party can
+      Republish: ContractId Publication
+        with newObservation: Observation
+        do
+          assert $ newObservation.label == observation.label
+          now <- fetchTime operator
+          create this
+            with
+              observation = newObservation
+              published = now
+
+      Close: ContractId ClosedPublication
+        do create ClosedPublication with publication = this
+
+    controller consumer.party can
+      nonconsuming DisputeQuality: ContractId DisputedStreamQuality
+        with description: Text
+        do
+          now <- fetchTime operator
+          create DisputedStreamQuality with
+            claimed = now
+            publisher = publisher
+            consumer = consumer
+            description = description
+            publication = this
+
+template ClosedPublication
+  with
+    publication: Publication
+  where
+    signatory publication.publisher.party
+    observer publication.consumer.party
+
+template DisputedStreamQuality
+  with
+    claimed: Time
+    publisher: Publisher
+    consumer: Consumer
+    description: Text
+    publication: Publication
+  where
+    signatory publisher.party
+
+    controller consumer.party can
+      DismissDisputedStreamQuality: ()
+        do return ()

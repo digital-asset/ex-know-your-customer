@@ -1,0 +1,29 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.DataSource where
+
+import DA.RefApps.KnowYourCustomer.Types
+
+type Path = Text
+
+template DataSource
+  with
+    owner : Party
+    operator : Party
+    observers : [Party]
+    reference : ObservationReference
+    path : Path
+  where
+    signatory operator
+    observer observers
+
+    controller owner can
+      AddNewObserverToDataSource : ContractId DataSource
+        with
+          newObserver : Party
+        do
+          create this with observers = newObserver :: observers

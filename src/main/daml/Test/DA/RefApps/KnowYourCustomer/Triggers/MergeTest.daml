@@ -1,0 +1,92 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest where
+
+import DA.Assert
+import DA.Time
+
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Publication
+import DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch
+import Test.DA.RefApps.KnowYourCustomer.RolesTest
+
+testMergeObservationsForDefaultInclusionConfig : Scenario ()
+testMergeObservationsForDefaultInclusionConfig = do
+  consumerParty <- getParty "KYC_Analyst"
+  publisherParty <- getParty "SomeProvider"
+  operator <- getParty "Operator"
+  let
+    label = observationReference
+    labelOther = label with customerName = "Some Other Text"
+    later = addRelTime appStartTime $ hours 1
+    publisher = Publisher with party = publisherParty
+    consumer = Consumer with party = consumerParty
+    pubCipNow = Publication with
+      observation = Observation with label; time = appStartTime; value = createCIP 1
+      publisher
+      consumer
+      published = appStartTime
+      operator
+    pubCipLater = pubCipNow with
+      observation = Observation with label; time = later; value = createCIP 2
+      published = later
+    pubCipForDifferentRef = pubCipNow with observation = pubCipNow.observation with label = labelOther
+    pubCddNow = pubCipNow with
+      observation = Observation with label; time = appStartTime; value = CDD $ createCddData 1
+      published = appStartTime
+    pubScreeningNow = pubCipNow with
+      observation = Observation with label; time = appStartTime; value = createScreening 1
+      published = appStartTime
+    pubScreeningLater = pubCipNow with
+      observation = Observation with label; time = later; value = createScreening 2
+      published = later
+    expectedMergedResearch = Some (appStartTime, ResearchData with
+      researchCip = Data $ createCIPData 1
+      researchCdd = NotAvailable
+      researchScreening = Data $ createScreeningData 1)
+    pubListWithDifferentDates = [pubCipLater, pubScreeningLater, pubCipNow, pubScreeningNow]
+    pubListWithDifferentDatesAndWithRedundantCdd = [pubCipLater, pubScreeningLater, pubCipNow, pubCddNow, pubScreeningNow]
+
+  None === createMergedObservation label []
+  None === createMergedObservation label [pubCipNow]
+  None === createMergedObservation label [pubScreeningNow]
+  None === createMergedObservation label [pubCipForDifferentRef, pubScreeningNow]
+  expectedMergedResearch
+    === createMergedObservation label [pubCipNow, pubScreeningNow]
+  expectedMergedResearch
+    === createMergedObservation label pubListWithDifferentDates
+  expectedMergedResearch
+    === createMergedObservation label pubListWithDifferentDatesAndWithRedundantCdd
+
+createScreening: Int -> ObservationValue
+createScreening id = Screening $ createScreeningData id
+
+createScreeningData : Int -> ScreeningData
+createScreeningData id =
+  ScreeningData with
+    sanctions = "N/A"
+    ofac = "Not listed" <> show id
+    negativeMedia = "0"
+    pep = "No"
+
+createCddData : Int -> CddData
+createCddData id =
+  CddData with
+    naic = "52/Finance and Insurance"
+    countryOfLicense = "UK"
+    legalEntityType = "Ltd"
+    publiclyTraded = True
+    revenue = "USD " <> show id
+    supplierType = "Type " <> show id
+    relationship = "borrower"
+
+observationReference: ObservationReference
+observationReference = ObservationReference with
+  customerName = "ACME"
+  includeCIP = True
+  includeCDD = False
+  includeScreening = True

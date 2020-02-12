@@ -1,0 +1,15 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearchTestSetup where
+
+import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup qualified as AutoRegisterTestSetup
+
+setup : Scenario ()
+setup = scenario $ do
+    bank1 <- getParty "Bank1"
+    kycAnalystProviderParty <- getParty "KYC_Analyst"
+    AutoRegisterTestSetup.setupConsumerProviderHierarchyWithDataLicense bank1 kycAnalystProviderParty
