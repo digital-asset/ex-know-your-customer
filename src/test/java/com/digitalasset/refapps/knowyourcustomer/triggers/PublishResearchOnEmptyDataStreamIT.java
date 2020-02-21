@@ -64,11 +64,11 @@ public class PublishResearchOnEmptyDataStreamIT extends TriggerTest {
 
     assertThat(research.researchData.researchCip, instanceOf(Data.class));
     Data<CipData> cip = (Data<CipData>) research.researchData.researchCip;
-    assertEquals(cip.a_a16aValue.tin, "TIN1");
+    assertEquals(cip.a_a16fValue.tin, "TIN1");
 
     assertThat(research.researchData.researchScreening, instanceOf(Data.class));
     Data<ScreeningData> screening = (Data<ScreeningData>) research.researchData.researchScreening;
-    assertEquals(screening.a_a16aValue.ofac, "Not listed1");
+    assertEquals(screening.a_a16fValue.ofac, "Not listed1");
 
     assertThat(research.researchData.researchCdd, instanceOf(NotAvailable.class));
   }
