@@ -164,6 +164,3 @@ checkIsExpired : Party -> LicenseData -> Update Bool
 checkIsExpired operator licenseData = do
   currentTime <- fetchTime operator
   pure $ isLicenseExpired licenseData currentTime
-
-partition : (a -> Bool) -> [a] -> ([a], [a])
-partition p xs = (filter p xs, filter (not . p) xs)
