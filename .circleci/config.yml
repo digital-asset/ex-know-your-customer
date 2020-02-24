@@ -101,6 +101,16 @@ jobs:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
+      - store_artifacts:
+          path: target/failsafe-reports
+      - store_test_results:
+          path: target/failsafe-reports
+      - run:
+          command: |
+            mkdir logs
+            mv *.log logs
+      - store_artifacts:
+          path: logs
       - persist_to_workspace:
           root: target
           paths:
