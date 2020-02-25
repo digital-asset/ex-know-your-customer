@@ -102,6 +102,16 @@ jobs:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
+      - store_artifacts:
+          path: target/failsafe-reports
+      - store_test_results:
+          path: target/failsafe-reports
+      - run:
+          command: |
+            mkdir logs
+            mv *.log logs
+      - store_artifacts:
+          path: logs
       - persist_to_workspace:
           root: target
           paths:
@@ -153,20 +163,20 @@ workflows:
   build_and_test:
     jobs:
       - daml_test:
-          daml_sdk_version: "0.13.50"
+          daml_sdk_version: "0.13.54"
       - mvn_test:
-          daml_sdk_version: "0.13.50"
+          daml_sdk_version: "0.13.54"
       - blackduck_check:
-          daml_sdk_version: "0.13.50"
+          daml_sdk_version: "0.13.54"
           context: blackduck
   build_and_release:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.50"
+          daml_sdk_version: "0.13.54"
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.50"
+          daml_sdk_version: "0.13.54"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context

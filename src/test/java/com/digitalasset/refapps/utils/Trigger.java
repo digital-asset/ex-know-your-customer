@@ -81,6 +81,7 @@ public class Trigger {
           .command(
               "daml",
               "trigger",
+              "--static-time",
               "--dar",
               darPath,
               "--trigger-name",

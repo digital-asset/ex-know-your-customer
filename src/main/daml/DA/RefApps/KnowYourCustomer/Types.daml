@@ -51,7 +51,7 @@ data ScreeningData =
       pep: Text
   deriving (Show, Eq)
 
-data OptionalData a = Data a | NotAvailable
+data OptionalData a = Data with value: a | NotAvailable
   deriving (Show, Eq)
 
 data ResearchData =
