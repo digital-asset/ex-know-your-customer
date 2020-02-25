@@ -194,3 +194,7 @@ testSetCurrentTime = scenario do
     exercise testData.manager SetCurrentTime with newCurrentTime = testData.later
     t <- fetchTime testData.operator
     t === testData.later
+
+dummyTest : Scenario ()
+dummyTest = scenario do
+  42 === 41
