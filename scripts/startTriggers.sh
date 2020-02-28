@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+export _JAVA_OPTIONS="-Xms8m -Xmx64m"
+
 set -e
 
 cleanup() {
