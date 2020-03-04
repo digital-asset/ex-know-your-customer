@@ -71,6 +71,7 @@ data ObservationValue =
         researchData: ResearchData
         reviewedBy: Party
         verifiedByQA: Bool
+  | EmptyStream
   deriving (Eq, Show)
 
 data Observation = Observation

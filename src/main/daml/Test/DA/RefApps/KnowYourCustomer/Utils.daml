@@ -6,6 +6,7 @@
 daml 1.2
 module Test.DA.RefApps.KnowYourCustomer.Utils where
 
+import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 
@@ -22,7 +23,7 @@ createRelationship operator operatorRole publisher consumer = do
 
 createDataStream : Party -> Party -> PublisherRelationship ->
                    ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
-                   Scenario SomeDataStream
+                   Scenario (ContractId DataStream)
 createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
   request <- consumer `submit` exercise relationship RequestStream
     with reference, starting, ending, staleHours

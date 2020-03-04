@@ -7,6 +7,8 @@ daml 1.2
 module DA.RefApps.KnowYourCustomer.Roles where
 
 import DA.Time
+import DA.Time as Time
+import DA.Date
 import DA.TimeService.TimeService
 import DA.Functor
 
@@ -225,6 +227,9 @@ template PublisherRoleInvitation
       PublisherRoleInvitation_Reject: ()
         do return ()
 
+initialTime: Time
+initialTime = Time.time (date 1 Jan 2019) 1 1 1
+
 template PublisherRole
   with
     operator: Party
@@ -235,25 +240,24 @@ template PublisherRole
     maintainer key.party
 
     controller publisher.party can
-      nonconsuming RegisterLicense: SomeDataStream
+      nonconsuming RegisterLicense: ContractId DataStream
         with
           licenseId: ContractId DataLicense
         do
           license <- fetch licenseId
           assert (publisher.party == license.licenseData.publisher.party)
           streamIdOpt <- lookupByKey @DataStream (publisher, license.licenseData.reference)
-          emptyStreamIdOpt <- lookupByKey @EmptyDataStream (publisher, license.licenseData.reference)
-          case (emptyStreamIdOpt, streamIdOpt) of
-            (Some emptyStreamId, None) -> do
-              EDS <$> exercise emptyStreamId AddConsumer with dataLicenseId = licenseId
-            (None, Some streamId) -> do
-              DS <$> exercise streamId AddConsumerDuringOperations with dataLicenseId = licenseId
-            (None, None) -> do
-              emptyStreamId <- create EmptyDataStream
-                with
-                  reference = license.licenseData.reference
-                  consumers = []
-                  ..
-              EDS <$> exercise emptyStreamId AddConsumer with dataLicenseId = licenseId
-            (Some _, Some _) -> do
-              error "Inconsistent DataStream"
+          case streamIdOpt of
+            None -> do
+              streamId <- create DataStream with
+                            observation = Observation with
+                                            label = license.licenseData.reference
+                                            time = initialTime
+                                            value = EmptyStream
+                            published = initialTime
+                            lastUpdated = initialTime
+                            consumers = []
+                            ..
+              exercise streamId AddConsumerDuringOperations with dataLicenseId = licenseId
+            Some streamId ->
+              exercise streamId AddConsumerDuringOperations with dataLicenseId = licenseId
