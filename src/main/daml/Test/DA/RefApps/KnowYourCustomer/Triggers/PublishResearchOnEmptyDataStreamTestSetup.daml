@@ -23,30 +23,24 @@ setup = scenario $ do
   setupToMergeRawPublicationsOnEmptyDataStream
   pure ()
 
-setupToMergeRawPublicationsOnEmptyDataStream : Scenario (ContractId EmptyDataStream)
+setupToMergeRawPublicationsOnEmptyDataStream : Scenario (ContractId DataStream)
 setupToMergeRawPublicationsOnEmptyDataStream = scenario $ do
-  operator <- getParty "Operator"
-  analyst <- getParty "KYC_Analyst"
-  bank1 <- getParty "Bank1"
-  reviewer <- getParty "KYC_Reviewer"
-  qualityAssurance <- getParty "KYC_QA"
+    operator <- getParty "Operator"
+    analyst <- getParty "KYC_Analyst"
+    bank1 <- getParty "Bank1"
+    reviewer <- getParty "KYC_Reviewer"
+    qualityAssurance <- getParty "KYC_QA"
 
-  operator `submit`
-    create CurrentTime with
-      operator
-      currentTime = appStartTime
-      observers = [analyst]
+    operator `submit`
+      create CurrentTime with
+        operator
+        currentTime = appStartTime
+        observers = [analyst]
 
-  researchProcess <- setupRawPublicationsAndResearchProcess
-  createResearchResult researchProcess analyst reviewer qualityAssurance 
+    researchProcess <- setupRawPublicationsAndResearchProcess
+    createResearchResult researchProcess analyst reviewer qualityAssurance
 
-  stream <- createEmptyDataStream operator analyst bank1
-  case stream of
-    EDS actualStreamId ->
-      pure actualStreamId
-    _ ->
-      error "There should have been an empty data stream."
-
+    createEmptyDataStream operator analyst bank1
   where
     reference = ObservationReference with
       customerName = "ACME"
@@ -65,7 +59,7 @@ setupToMergeRawPublicationsOnEmptyDataStream = scenario $ do
           researchData = researchData
       qaRequest <- submit reviewer $ exercise reviewRequest ApproveReview
       submit qualityAssurance $ exercise qaRequest ApproveVerified
-    
+
     createEmptyDataStream operator analyst bank1 = do
       operatorRole <- operator `submit` create OperatorRole with operator
       relation <- createRelationship operator operatorRole analyst bank1

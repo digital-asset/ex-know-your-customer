@@ -20,20 +20,17 @@ import Test.DA.RefApps.KnowYourCustomer.RolesTest
 
 testLicenseExpiryClosesNonFreshStream : Scenario ()
 testLicenseExpiryClosesNonFreshStream = scenario do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, _)
     <- roleSetup
-  mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
 
   currentTime <- submit operator do
     exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateObservation with
+    analystStreamId <- exercise analystStreamId UpdateObservation with
       time = now
       newValue = createCIP 372
-    mdvStream <- fetch mdvStreamId
+    mdvStream <- fetch analystStreamId
     mdvStream.consumers === []
 
   let
@@ -51,32 +48,17 @@ testLicenseExpiryClosesNonFreshStream = scenario do
     Some _ -> fail "unexpected contract: LiveStreamLicense should have been expired"
     None -> pure ()
 
-testLicenseExpiryPreventsStartingStream : Scenario ()
-testLicenseExpiryPreventsStartingStream = scenario do
-  (reference, currentObservation, operator,  _, _, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
-    <- roleSetup
-
-  currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
-
-  submitMustFail mdVendorParty do
-    exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
-
 testLicenseExpiryClosesFreshStream : Scenario ()
 testLicenseExpiryClosesFreshStream = scenario do
-  (reference, currentObservation, operator, endUserParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+  (reference, currentObservation, operator, endUserParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, _)
     <- roleSetup
-  mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
 
   currentTime <- submit operator do
     exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateLicenses
-    mdvStream <- fetch mdvStreamId
+    analystStreamId <- exercise analystStreamId UpdateLicenses
+    mdvStream <- fetch analystStreamId
     mdvStream.consumers === []
 
   let

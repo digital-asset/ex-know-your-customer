@@ -19,7 +19,7 @@ import Test.DA.RefApps.KnowYourCustomer.RolesTest
 
 testConsumerCanClaimNonPerformance : Scenario ()
 testConsumerCanClaimNonPerformance = scenario do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, _)
     <- roleSetup
   let
     afterStart = addRelTime now (hours 2)
@@ -35,13 +35,15 @@ testConsumerCanClaimNonPerformance = scenario do
     nonPerformance.licenseData === license.licenseData
     nonPerformance.claimed === afterStart
 
-  submitMustFail mdVendorParty $
-    exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
+  submitMustFail mdVendorParty do
+    exercise analystStreamId UpdateObservation with
+      time = now
+      newValue = currentObservation.value
+
 
 testConsumerCannotClaimNonPerformanceBeforeStart : Scenario ()
 testConsumerCannotClaimNonPerformanceBeforeStart = scenario do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, _)
     <- roleSetup
   let
     licenseKey = (Publisher mdVendorParty, Consumer bankParty, reference)
@@ -54,7 +56,7 @@ testConsumerCannotClaimNonPerformanceBeforeStart = scenario do
 
 testConsumerCanClaimStalePublication : Scenario ()
 testConsumerCanClaimStalePublication = scenario do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, staleHours)
     <- roleSetup
 
   let
@@ -63,9 +65,7 @@ testConsumerCanClaimStalePublication = scenario do
     someCIP = createCIP 211
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
-    exercise mdvStreamId UpdateObservation with
+    exercise analystStreamId UpdateObservation with
       time = now
       newValue = someCIP
 
@@ -92,8 +92,6 @@ testConsumerCannotClaimStalePublicationBeforeStaleTime = scenario do
     someCIP = createCIP 463
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
     exercise mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP
@@ -120,8 +118,6 @@ consumerCanStartDisputeAboutQuality = scenario do
     someCIP = createCIP 211
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
     exercise mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP

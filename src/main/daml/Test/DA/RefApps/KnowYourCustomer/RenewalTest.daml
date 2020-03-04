@@ -18,11 +18,8 @@ import Test.DA.RefApps.KnowYourCustomer.Utils
 
 testLicenseRenewal : Scenario ()
 testLicenseRenewal = scenario do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, analystStreamId, _)
     <- roleSetup
-  mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
-      newObservation = currentObservation
 
   let
     newEnding = addRelTime afterExpiry (days 1)
@@ -33,10 +30,10 @@ testLicenseRenewal = scenario do
     exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
   submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateObservation with
+    analystStreamId <- exercise analystStreamId UpdateObservation with
       time = now
       newValue = someCIP
-    mdvStream <- fetch mdvStreamId
+    mdvStream <- fetch analystStreamId
     mdvStream.consumers === []
 
   createDataStream
