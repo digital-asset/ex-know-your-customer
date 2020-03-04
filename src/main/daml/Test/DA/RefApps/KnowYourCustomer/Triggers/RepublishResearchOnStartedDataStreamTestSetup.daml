@@ -19,25 +19,17 @@ setup = scenario $ do
 
   stream <- setupToMergeRawPublicationsOnEmptyDataStream
 
-  let newObservation =
-        Observation with
-          label = reference
-          time = appStartTime
-          value = Research with -- any observation value just to start the EmptyDataStream
+  let research = Research with -- any observation value just to start the EmptyDataStream
             reviewedBy = reviewer
             verifiedByQA = True
             researchData
 
-  submit analyst $ exercise stream StartDataStream with newObservation
+  submit analyst $ exercise stream UpdateObservation with
+                                  time = appStartTime
+                                  newValue = research
 
   pure ()
   where
-    reference = ObservationReference with
-      customerName = "ACME"
-      includeCIP = True
-      includeCDD = False
-      includeScreening = True
-
     researchData = ResearchData with
       researchCip = Data $ createCIPData 1
       researchCdd = NotAvailable
