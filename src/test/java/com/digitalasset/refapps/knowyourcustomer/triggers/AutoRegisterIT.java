@@ -14,7 +14,6 @@ import com.digitalasset.testing.utils.ContractWithId;
 import da.refapps.knowyourcustomer.datalicense.DataLicense;
 import da.refapps.knowyourcustomer.datalicense.RegisteredDataLicense;
 import da.refapps.knowyourcustomer.datastream.DataStream;
-import da.refapps.knowyourcustomer.datastream.EmptyDataStream;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
 
@@ -56,11 +55,11 @@ public class AutoRegisterIT extends TriggerTest {
 
     ledger.observeMatchingContracts(
         CIP_PROVIDER,
-        EmptyDataStream.TEMPLATE_ID,
-        EmptyDataStream::fromValue,
+        DataStream.TEMPLATE_ID,
+        DataStream::fromValue,
         true,
-        this::isEmptyDataStreamWithoutConsumer,
-        this::isEmptyDataStreamWithOneConsumer);
+        this::isDataStreamWithoutConsumer,
+        this::isDataStreamWithOneConsumer);
 
     ledger.assertDidntHappen(
         CIP_PROVIDER.getValue(),
@@ -73,18 +72,18 @@ public class AutoRegisterIT extends TriggerTest {
         ContractCreated.expectContract(DataStream.TEMPLATE_ID, "{IGNORE}"));
   }
 
-  private boolean isEmptyDataStreamWithoutConsumer(EmptyDataStream emptyDataStream) {
-    return hasRightStakeholders(emptyDataStream) && emptyDataStream.consumers.isEmpty();
+  private boolean isDataStreamWithoutConsumer(DataStream dataStream) {
+    return hasRightStakeholders(dataStream) && dataStream.consumers.isEmpty();
   }
 
-  private boolean isEmptyDataStreamWithOneConsumer(EmptyDataStream emptyDataStream) {
-    return hasRightStakeholders(emptyDataStream)
-        && emptyDataStream.consumers.size() == 1
-        && emptyDataStream.consumers.get(0).party.equals(KYC_ANALYST.getValue());
+  private boolean isDataStreamWithOneConsumer(DataStream dataStream) {
+    return hasRightStakeholders(dataStream)
+        && dataStream.consumers.size() == 1
+        && dataStream.consumers.get(0).party.equals(KYC_ANALYST.getValue());
   }
 
-  private boolean hasRightStakeholders(EmptyDataStream emptyDataStream) {
-    return CIP_PROVIDER.getValue().equals(emptyDataStream.publisher.party)
-        && OPERATOR.getValue().equals(emptyDataStream.operator);
+  private boolean hasRightStakeholders(DataStream dataStream) {
+    return CIP_PROVIDER.getValue().equals(dataStream.publisher.party)
+        && OPERATOR.getValue().equals(dataStream.operator);
   }
 }

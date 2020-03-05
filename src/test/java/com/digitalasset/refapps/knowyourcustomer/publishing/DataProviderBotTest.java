@@ -16,7 +16,6 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.knowyourcustomer.utils.CommandsAndPendingSetBuilder;
 import com.google.common.collect.Sets;
 import da.refapps.knowyourcustomer.datastream.DataStream;
-import da.refapps.knowyourcustomer.datastream.EmptyDataStream;
 import da.refapps.knowyourcustomer.types.*;
 import da.refapps.knowyourcustomer.types.observationvalue.CIP;
 import da.timeservice.timeservice.CurrentTime;
@@ -69,41 +68,6 @@ public class DataProviderBotTest {
       new TestDataProvider(Optional.empty());
   private final DataProviderBot botNonpublishing =
       new DataProviderBot(cmdsBuilderFactory, PUBLISHER.party, nonpublishingDataProvider);
-
-  @Test
-  public void testEmptyStreamIsStarted() {
-    EmptyDataStream emptyDataStream =
-        new EmptyDataStream(OPERATOR, REFERENCE, Collections.emptyList(), PUBLISHER);
-    CurrentTime currentTime =
-        new CurrentTime(
-            OPERATOR, Instant.parse("2020-01-03T10:15:30.00Z"), Collections.emptyList());
-    final String emptyDataStreamCid = "cid2";
-
-    LedgerTestView<Template> ledgerView =
-        createEmptyLedgerTestView()
-            .addActiveContract(CurrentTime.TEMPLATE_ID, "cid1", currentTime)
-            .addActiveContract(EmptyDataStream.TEMPLATE_ID, emptyDataStreamCid, emptyDataStream);
-
-    CommandsAndPendingSet result = bot.calculateCommands(ledgerView).blockingFirst();
-    assertHasSingleExercise(result, emptyDataStreamCid, "StartDataStream");
-  }
-
-  @Test
-  public void testEmptyStreamIsNotStartedIfNoPublicationAvailable() {
-    EmptyDataStream emptyDataStream =
-        new EmptyDataStream(OPERATOR, REFERENCE, Collections.emptyList(), PUBLISHER);
-    CurrentTime currentTime =
-        new CurrentTime(
-            OPERATOR, Instant.parse("2020-01-03T10:15:30.00Z"), Collections.emptyList());
-    final String emptyDataStreamCid = "cid2";
-
-    LedgerTestView<Template> ledgerView =
-        createEmptyLedgerTestView()
-            .addActiveContract(CurrentTime.TEMPLATE_ID, "cid1", currentTime)
-            .addActiveContract(EmptyDataStream.TEMPLATE_ID, emptyDataStreamCid, emptyDataStream);
-
-    assertTrue(botNonpublishing.calculateCommands(ledgerView).isEmpty().blockingGet());
-  }
 
   @Test
   public void testDataStreamPublicationHappensIfTimePassed() {

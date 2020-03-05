@@ -161,9 +161,6 @@ template DataLicenseProposal
     DataLicenseProposal_Reject: ()
       do return ()
 
-data SomeDataStream = EDS (ContractId EmptyDataStream)
-                    | DS (ContractId DataStream)
-
 template PublisherConsumerRelationship
   with
     operator: Party

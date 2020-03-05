@@ -13,7 +13,6 @@ import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
 import da.refapps.knowyourcustomer.datalicense.RegisteredDataLicense;
 import da.refapps.knowyourcustomer.datastream.DataStream;
-import da.refapps.knowyourcustomer.datastream.EmptyDataStream;
 import da.refapps.knowyourcustomer.kycextension.ResearchProcess;
 import java.io.IOException;
 import org.junit.ClassRule;
@@ -59,11 +58,11 @@ public class AutoStartResearchProcessIT extends TriggerTest {
 
     ledger.observeMatchingContracts(
         KYC_ANALYST,
-        EmptyDataStream.TEMPLATE_ID,
-        EmptyDataStream::fromValue,
+        DataStream.TEMPLATE_ID,
+        DataStream::fromValue,
         true,
-        this::isEmptyDataStreamWithoutConsumer,
-        this::isEmptyDataStreamWithOneConsumer);
+        this::isDataStreamWithoutConsumer,
+        this::isDataStreamWithOneConsumer);
 
     ContractWithId<ResearchProcess.ContractId> researchProcessWithId =
         ledger.getMatchedContract(
@@ -80,18 +79,18 @@ public class AutoStartResearchProcessIT extends TriggerTest {
         KYC_ANALYST.getValue(), ContractCreated.expectContract(DataStream.TEMPLATE_ID, "{IGNORE}"));
   }
 
-  private boolean isEmptyDataStreamWithoutConsumer(EmptyDataStream emptyDataStream) {
-    return hasRightStakeholders(emptyDataStream) && emptyDataStream.consumers.isEmpty();
+  private boolean isDataStreamWithoutConsumer(DataStream dataStream) {
+    return hasRightStakeholders(dataStream) && dataStream.consumers.isEmpty();
   }
 
-  private boolean isEmptyDataStreamWithOneConsumer(EmptyDataStream emptyDataStream) {
-    return hasRightStakeholders(emptyDataStream)
-        && emptyDataStream.consumers.size() == 1
-        && emptyDataStream.consumers.get(0).party.equals(BANK_1.getValue());
+  private boolean isDataStreamWithOneConsumer(DataStream dataStream) {
+    return hasRightStakeholders(dataStream)
+        && dataStream.consumers.size() == 1
+        && dataStream.consumers.get(0).party.equals(BANK_1.getValue());
   }
 
-  private boolean hasRightStakeholders(EmptyDataStream emptyDataStream) {
-    return KYC_ANALYST.getValue().equals(emptyDataStream.publisher.party)
-        && OPERATOR.getValue().equals(emptyDataStream.operator);
+  private boolean hasRightStakeholders(DataStream dataStream) {
+    return KYC_ANALYST.getValue().equals(dataStream.publisher.party)
+        && OPERATOR.getValue().equals(dataStream.operator);
   }
 }

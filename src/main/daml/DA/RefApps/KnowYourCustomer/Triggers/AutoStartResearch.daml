@@ -17,7 +17,6 @@ import DA.Optional
 import DA.RefApps.KnowYourCustomer.Triggers.Logging
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
-import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.KycExtension
 
@@ -38,8 +37,7 @@ createAutoStartResearchProcessTrigger reviewer qualityAssurance = Trigger
   , updateState = \_ _ _ -> ()
   , rule = startResearchProcess reviewer qualityAssurance
   , registeredTemplates = RegisteredTemplates [
-      registeredTemplate @EmptyDataStream
-    , registeredTemplate @PublisherConsumerRelationship
+      registeredTemplate @PublisherConsumerRelationship
     , registeredTemplate @DataLicense
     , registeredTemplate @PublisherRole
     ]

@@ -27,7 +27,6 @@ mergeAndPublishResearchDataTrigger = Trigger
   , rule = mergeAndPublishResearchDataRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @Publication
-    , registeredTemplate @EmptyDataStream
     , registeredTemplate @DataStream
     , registeredTemplate @ResearchProcess
     , registeredTemplate @ResearchResult
@@ -43,9 +42,6 @@ mergeAndPublishResearchDataRule party activeContracts _ _ () = do
   -- Get data streams where 'party' provides data to, i.e. publisher
       dataStreams = getContracts @DataStream activeContracts
       ownDataStreams = filter (\(_, s) -> s.publisher.party == party) dataStreams
-  -- Get empty streams to start them
-      emptyDataStreams = getContracts @EmptyDataStream activeContracts
-      ownEmptyDataStreams = filter (\(_, s) -> s.publisher.party == party) emptyDataStreams
       researchProcess = getContracts @ResearchProcess activeContracts
       researchResults = getContracts @ResearchResult activeContracts
 
@@ -62,12 +58,6 @@ mergeAndPublishResearchDataRule party activeContracts _ _ () = do
     researchResults
     (\(rrCid, rr) -> do
       let observation = Observation rr.reference rr.time $ Research rr.researchData rr.reviewer rr.verifiedByQA
-      forA_ ownEmptyDataStreams (\(sCid, s) ->
-        when (s.reference == rr.reference) $ do
-          log $ "Starting stream: " <> show s
-          dedupExercise sCid StartDataStream with newObservation = observation
-          dedupExercise rrCid MarkProcessed with cause = "Automatic processing (empty data stream).")
-
       forA_ ownDataStreams (\(sCid, s) ->
         when (s.observation.label == rr.reference && s.observation.time < observation.time) $ do
           log $ "Updating observation on stream: " <> show s

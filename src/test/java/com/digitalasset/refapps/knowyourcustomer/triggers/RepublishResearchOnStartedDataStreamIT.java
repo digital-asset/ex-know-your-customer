@@ -4,18 +4,35 @@
  */
 package com.digitalasset.refapps.knowyourcustomer.triggers;
 
+import static com.digitalasset.refapps.knowyourcustomer.assertions.Assert.assertContractsCreatedExactlyNTimes;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.testing.junit4.Sandbox;
+import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
+import com.digitalasset.testing.utils.ContractWithId;
+import da.refapps.knowyourcustomer.datastream.DataStream;
+import da.refapps.knowyourcustomer.kycextension.ResearchProcess;
+import da.refapps.knowyourcustomer.publication.Publication;
+import da.refapps.knowyourcustomer.types.CipData;
+import da.refapps.knowyourcustomer.types.ScreeningData;
+import da.refapps.knowyourcustomer.types.observationvalue.Research;
+import da.refapps.knowyourcustomer.types.optionaldata.Data;
+import da.refapps.knowyourcustomer.types.optionaldata.NotAvailable;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
+import java.io.IOException;
+
 public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
 
   private static final Sandbox sandbox =
       buildSandbox(
-          "Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnStartedDataStreamTestSetup");
+          "Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnDataStreamTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
@@ -37,6 +54,34 @@ public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
 
   @Test
   public void testReviewedResearchIsRepublishedOnDataStream() {
-    PublishResearchOnEmptyDataStreamIT.doTestReviewedResearchIsPublished(sandbox);
+    DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
+    String[] events = {"created", "added consumer", "updated/published by trigger"};
+    assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, events.length, DataStream.TEMPLATE_ID);
+    assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, 2, ResearchProcess.TEMPLATE_ID);
+    ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);
+    ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);
+    try {
+      System.in.read();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    Research research = getResearch(ledger);
+
+    assertThat(research.researchData.researchCip, instanceOf(Data.class));
+    Data<CipData> cip = (Data<CipData>) research.researchData.researchCip;
+    assertEquals(cip.value.tin, "TIN1");
+
+    assertThat(research.researchData.researchScreening, instanceOf(Data.class));
+    Data<ScreeningData> screening = (Data<ScreeningData>) research.researchData.researchScreening;
+    assertEquals(screening.value.ofac, "Not listed1");
+
+    assertThat(research.researchData.researchCdd, instanceOf(NotAvailable.class));
+  }
+
+  private static Research getResearch(DefaultLedgerAdapter ledger) {
+    ContractWithId<Publication> mergedPublicationMatched =
+        ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);
+    Publication mergedPublication = Publication.fromValue(mergedPublicationMatched.record);
+    return Research.fromValue(mergedPublication.observation.value.toValue());
   }
 }

@@ -16,9 +16,6 @@ import com.digitalasset.refapps.knowyourcustomer.utils.CommandsAndPendingSetBuil
 import com.google.common.collect.Sets;
 import da.refapps.knowyourcustomer.datasource.DataSource;
 import da.refapps.knowyourcustomer.datastream.DataStream;
-import da.refapps.knowyourcustomer.datastream.EmptyDataStream;
-import da.refapps.knowyourcustomer.types.Observation;
-import da.refapps.knowyourcustomer.types.ObservationReference;
 import da.refapps.knowyourcustomer.types.ObservationValue;
 import da.timeservice.timeservice.CurrentTime;
 import io.reactivex.Flowable;
@@ -46,8 +43,7 @@ public class DataProviderBot {
 
     Set<Identifier> templateSet =
         Sets.union(
-            Sets.newHashSet(
-                EmptyDataStream.TEMPLATE_ID, DataStream.TEMPLATE_ID, CurrentTime.TEMPLATE_ID),
+            Sets.newHashSet(DataStream.TEMPLATE_ID, CurrentTime.TEMPLATE_ID),
             publishingDataProvider.getUsedTemplates());
     Filter streamFilter = new InclusiveFilter(templateSet);
     transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, streamFilter));
@@ -58,11 +54,7 @@ public class DataProviderBot {
     CommandsAndPendingSetBuilder.Builder builder = commandsAndPendingSetBuilder.newBuilder();
 
     getCurrentTime(ledgerView)
-        .ifPresent(
-            currentTime -> {
-              startAllEmptyDataStream(ledgerView, currentTime, builder);
-              updateAllDataStreams(ledgerView, currentTime, builder);
-            });
+        .ifPresent(currentTime -> updateAllDataStreams(ledgerView, currentTime, builder));
 
     return builder.buildFlowable();
   }
@@ -73,34 +65,8 @@ public class DataProviderBot {
 
   public Template getContractInfo(CreatedContract createdContract) {
     //noinspection unchecked
-    return TemplateUtils.contractTransformer(
-            EmptyDataStream.class, DataStream.class, CurrentTime.class, DataSource.class)
+    return TemplateUtils.contractTransformer(DataStream.class, CurrentTime.class, DataSource.class)
         .apply(createdContract);
-  }
-
-  private void startAllEmptyDataStream(
-      LedgerViewFlowable.LedgerView<Template> ledgerView,
-      Instant currentTime,
-      CommandsAndPendingSetBuilder.Builder cmdBuilder) {
-    Map<String, EmptyDataStream> emptyDataStreams =
-        filterTemplates(
-            EmptyDataStream.class, ledgerView.getContracts(EmptyDataStream.TEMPLATE_ID));
-
-    for (Map.Entry<String, EmptyDataStream> edsWithCid : emptyDataStreams.entrySet()) {
-      EmptyDataStream emptyDataStream = edsWithCid.getValue();
-      ObservationReference label = emptyDataStream.reference;
-      if (emptyDataStream.publisher.party.equals(partyName)) {
-        Optional<ObservationValue> optionalObservation =
-            publishingDataProvider.getObservation(ledgerView, label, currentTime);
-        optionalObservation.ifPresent(
-            observationValue -> {
-              Observation observation = new Observation(label, currentTime, observationValue);
-              cmdBuilder.addCommand(
-                  new EmptyDataStream.ContractId(edsWithCid.getKey())
-                      .exerciseStartDataStream(observation));
-            });
-      }
-    }
   }
 
   private void updateAllDataStreams(
