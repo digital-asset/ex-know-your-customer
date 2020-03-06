@@ -21,12 +21,11 @@ import da.refapps.knowyourcustomer.types.ScreeningData;
 import da.refapps.knowyourcustomer.types.observationvalue.Research;
 import da.refapps.knowyourcustomer.types.optionaldata.Data;
 import da.refapps.knowyourcustomer.types.optionaldata.NotAvailable;
+import java.io.IOException;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
-
-import java.io.IOException;
 
 public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
 
