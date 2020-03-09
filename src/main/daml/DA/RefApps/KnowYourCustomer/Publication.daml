@@ -36,9 +36,6 @@ template Publication
               observation = newObservation
               published = now
 
-      Close: ContractId ClosedPublication
-        do create ClosedPublication with publication = this
-
     controller consumer.party can
       nonconsuming DisputeQuality: ContractId DisputedStreamQuality
         with description: Text
