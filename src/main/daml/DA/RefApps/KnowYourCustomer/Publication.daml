@@ -51,13 +51,6 @@ template Publication
             description = description
             publication = this
 
-template ClosedPublication
-  with
-    publication: Publication
-  where
-    signatory publication.publisher.party
-    observer publication.consumer.party
-
 template DisputedStreamQuality
   with
     claimed: Time
