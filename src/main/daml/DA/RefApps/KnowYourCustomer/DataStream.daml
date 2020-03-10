@@ -136,7 +136,7 @@ republish _ _ = error "Republish called for Expired Publication."
 
 expire : LiveOrExpired -> Update ()
 expire e@(Expired oldPublicationId licenseKey) = do
-  exercise oldPublicationId Close
+  archive oldPublicationId
   exercise licenseKey ExpireLicense
 expire _ = error "Expire called for Live Publication."
 
