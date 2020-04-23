@@ -24,7 +24,7 @@ public abstract class TriggerTest {
         .dar(Paths.get("target/know-your-customer.dar"))
         .parties(OPERATOR, CIP_PROVIDER, BANK_1, KYC_ANALYST, KYC_REVIEWER, KYC_QUALITYASSURANCE)
         .module(module)
-        .scenario("setup")
+        .startScript("setup")
         .timeout(Duration.ofSeconds(90))
         .build();
   }

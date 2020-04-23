@@ -58,7 +58,6 @@ public class TimeUpdaterBotIT extends TimeUpdaterBotBaseTest {
     TimeUnit.MILLISECONDS.sleep(2500);
 
     verify(commandSubmissionClient, times(2))
-        .submit(
-            anyString(), anyString(), anyString(), anyString(), any(), any(), commands.capture());
+        .submit(anyString(), anyString(), anyString(), anyString(), commands.capture());
   }
 }
