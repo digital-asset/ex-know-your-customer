@@ -136,8 +136,9 @@ jobs:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
             daml build -o target/know-your-customer.dar
-            daml test --junit target/daml-test-reports/daml-test.xml
-            daml test-script --dar target/know-your-customer.dar
+            ./scripts/runDamlScript.sh \
+              "target/know-your-customer.dar" \
+              "DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox"
       - save_cache:
           paths:
             - ~/.daml
