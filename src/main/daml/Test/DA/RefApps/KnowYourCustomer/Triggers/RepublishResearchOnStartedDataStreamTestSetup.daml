@@ -12,11 +12,13 @@ import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup
 
-setup : Scenario ()
-setup = scenario $ do
-  analyst <- getParty "KYC_Analyst"
-  reviewer <- getParty "KYC_Reviewer"
+import DA.Optional
+import Daml.Script
 
+setup : Script ()
+setup = do
+  let analyst = fromSome (partyFromText "KYC_Analyst")
+      reviewer = fromSome (partyFromText "KYC_Reviewer")
   stream <- setupToMergeRawPublicationsOnEmptyDataStream
 
   let newObservation =
@@ -28,7 +30,7 @@ setup = scenario $ do
             verifiedByQA = True
             researchData
 
-  submit analyst $ exercise stream StartDataStream with newObservation
+  submit analyst $ exerciseCmd stream StartDataStream with newObservation
 
   pure ()
   where

@@ -9,9 +9,12 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoVerificationTestSetup where
 import DA.RefApps.KnowYourCustomer.KycExtension
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoReviewTestSetup
 
-setup : Scenario ()
-setup = scenario do
-  reviewer <- getParty "KYC_Reviewer"
+import DA.Optional
+import Daml.Script
+
+setup : Script ()
+setup = do
+  let reviewer = fromSome (partyFromText "KYC_Reviewer")
   reviewRequest <- setupReviewRequest reviewer
-  submit reviewer $ exercise reviewRequest ApproveReview
+  submit reviewer $ exerciseCmd reviewRequest ApproveReview
   pure ()
