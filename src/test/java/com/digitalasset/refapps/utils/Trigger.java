@@ -4,9 +4,12 @@
  */
 package com.digitalasset.refapps.utils;
 
+import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
+
 import com.daml.ledger.javaapi.data.Party;
-import java.io.File;
 import java.nio.file.Path;
+import java.util.Scanner;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,9 @@ public class Trigger {
   public void start() throws Throwable {
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
     trigger = processBuilder.start();
+    try (Scanner scanner = new Scanner(trigger.getInputStream())) {
+      eventually(() -> Assert.assertTrue(scanner.nextLine().contains("Trigger is running")));
+    }
     logger.info("Started.");
   }
 
@@ -67,11 +73,7 @@ public class Trigger {
     }
 
     public Trigger build() {
-      File logFile = new File(String.format("integration-test-%s.log", triggerName));
-      ProcessBuilder processBuilder =
-          command()
-              .redirectError(ProcessBuilder.Redirect.appendTo(logFile))
-              .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+      ProcessBuilder processBuilder = command().redirectErrorStream(true);
       return new Trigger(processBuilder);
     }
 
