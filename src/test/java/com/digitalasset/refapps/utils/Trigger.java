@@ -43,7 +43,7 @@ public class Trigger {
     trigger = processBuilder.start();
     try {
       eventually(() -> Assert.assertTrue(logFinder.found()));
-    } finally{
+    } finally {
       tailer.stop();
     }
     logger.info("Started.");

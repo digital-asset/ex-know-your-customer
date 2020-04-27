@@ -34,5 +34,4 @@ public class FinderTest extends TestCase {
     finder.process(some_noise);
     assertTrue(finder.found());
   }
-
 }

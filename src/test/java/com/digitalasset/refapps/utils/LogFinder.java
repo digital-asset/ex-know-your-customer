@@ -12,7 +12,9 @@ public class LogFinder {
   }
 
   public void process(String line) {
-    if (!found && matches(line)) { found = true; }
+    if (!found && matches(line)) {
+      found = true;
+    }
   }
 
   private static boolean matches(String line) {
