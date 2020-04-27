@@ -1,22 +1,14 @@
 package com.digitalasset.refapps.utils;
 
-import org.apache.commons.io.input.TailerListenerAdapter;
-
 public class LogFinder {
-  private State state = State.DISABLED;
-
-  private enum State {DISABLED, ENABLED, FOUND}
+  private boolean found = false;
 
   public boolean found() {
-    return state == State.FOUND;
-  }
-
-  public void enable() {
-    state = State.ENABLED;
+    return found;
   }
 
   public void process(String line) {
-    if (state == State.ENABLED && matches(line)) { state = State.FOUND; }
+    if (!found && matches(line)) { found = true; }
   }
 
   private static boolean matches(String line) {
