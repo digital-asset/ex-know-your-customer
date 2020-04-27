@@ -35,23 +35,8 @@ public class Trigger {
   public void start() throws Throwable {
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
 
-    class TriggerTailerListener extends TailerListenerAdapter {
-      private LogFinder logFinder;
-
-      TriggerTailerListener(LogFinder logFinder) {
-        this.logFinder = logFinder;
-      }
-
-      public void handle(String line) {
-        logFinder.process(line);
-      }
-    }
-
     LogFinder logFinder = new LogFinder();
-    TriggerTailerListener listener = new TriggerTailerListener(logFinder);
-    boolean fromEndOfFile = true;
-    int delayMillis = 1000;
-    Tailer tailer = new Tailer(logFile, listener, delayMillis, fromEndOfFile);
+    Tailer tailer = createTailer(logFinder);
     Thread thread = new Thread(tailer);
     thread.start();
 
@@ -62,6 +47,20 @@ public class Trigger {
       tailer.stop();
     }
     logger.info("Started.");
+  }
+
+  private Tailer createTailer(LogFinder logFinder) {
+
+    class LogTailerListener extends TailerListenerAdapter {
+      public void handle(String line) {
+        logFinder.process(line);
+      }
+    }
+
+    LogTailerListener listener = new LogTailerListener();
+    boolean fromEndOfFile = true;
+    int delayMillis = 1000;
+    return new Tailer(logFile, listener, delayMillis, fromEndOfFile);
   }
 
   public void stop() {
