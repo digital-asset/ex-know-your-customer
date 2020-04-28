@@ -9,7 +9,7 @@ executors:
   mvn-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
-    resource_class: large
+    resource_class: xlarge
   daml-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
