@@ -7,18 +7,18 @@ daml 1.2
 module Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnStartedDataStreamTestSetup where
 
 import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Utils
 import DA.RefApps.KnowYourCustomer.Types
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup
 
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
 setup = do
-  let analyst = fromSome (partyFromText "KYC_Analyst")
-      reviewer = fromSome (partyFromText "KYC_Reviewer")
+  analyst <- getScriptParty "KYC_Analyst"
+  reviewer <- getScriptParty "KYC_Reviewer"
   stream <- setupToMergeRawPublicationsOnEmptyDataStream
 
   let newObservation =

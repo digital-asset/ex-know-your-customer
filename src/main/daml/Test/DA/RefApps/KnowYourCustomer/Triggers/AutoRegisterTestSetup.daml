@@ -7,14 +7,14 @@ daml 1.2
 module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup qualified as AutoAcceptTestSetup
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
 setup = do
-    let kycAnalyst = fromSome (partyFromText "KYC_Analyst")
-        cipProviderParty = fromSome (partyFromText "CIP_Provider")
+    kycAnalyst <- getScriptParty "KYC_Analyst"
+    cipProviderParty <- getScriptParty "CIP_Provider"
     setupConsumerProviderHierarchyWithDataLicense kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchyWithDataLicense : Party -> Party -> Script ()

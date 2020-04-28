@@ -10,20 +10,20 @@ import DA.Time
 
 import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Utils
 
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
 setup = do
-  let reviewer = fromSome (partyFromText "KYC_Reviewer")
+  reviewer <- getScriptParty "KYC_Reviewer"
   setupReviewRequest reviewer
   pure ()
 
 setupReviewRequest : Party -> Script (ContractId ReviewRequest)
 setupReviewRequest reviewer = do
-    let analyst = fromSome (partyFromText "KYC_Analyst")
-        qualityAssurance = fromSome (partyFromText "KYC_QA")
+    analyst <- getScriptParty "KYC_Analyst"
+    qualityAssurance <- getScriptParty "KYC_QA"
 
     submit analyst $
       createCmd ReviewRequest with

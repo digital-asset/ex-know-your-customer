@@ -9,10 +9,10 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.MergeAndSendToReviewTestSetup w
 import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
+import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
 
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
@@ -22,12 +22,12 @@ setup = do
 
 setupRawPublicationsAndResearchProcess : Script (ContractId ResearchProcess)
 setupRawPublicationsAndResearchProcess = do
-  let operator = fromSome (partyFromText "Operator")
-      analyst = fromSome (partyFromText "KYC_Analyst")
-      reviewer = fromSome (partyFromText "KYC_Reviewer")
-      qualityAssurance = fromSome (partyFromText "KYC_QA")
-      cipProvider = fromSome (partyFromText "CIP_Provider")
-      screeningProvider = fromSome (partyFromText "ScreeningProvider")
+  operator <- getScriptParty "Operator"
+  analyst <- getScriptParty "KYC_Analyst"
+  reviewer <- getScriptParty "KYC_Reviewer"
+  qualityAssurance <- getScriptParty "KYC_QA"
+  cipProvider <- getScriptParty "CIP_Provider"
+  screeningProvider <- getScriptParty "ScreeningProvider"
   let
     label = observationReference
     consumer = Consumer with party = analyst

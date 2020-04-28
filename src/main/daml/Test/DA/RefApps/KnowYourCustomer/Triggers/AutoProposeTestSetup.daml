@@ -8,22 +8,22 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup where
 
 import DA.Time
 
+import DA.TimeService.TimeService
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
-import DA.TimeService.TimeService
 import DA.RefApps.KnowYourCustomer.MarketSetupScript
-import DA.Optional
+import DA.RefApps.KnowYourCustomer.Utils
 import Daml.Script
 
 setup : Script (ContractId DataStreamRequest)
 setup = do
-    let kycAnalyst = fromSome (partyFromText "KYC_Analyst")
-        cipProviderParty = fromSome (partyFromText "CIP_Provider")
+    kycAnalyst <- getScriptParty "KYC_Analyst"
+    cipProviderParty <- getScriptParty "CIP_Provider"
     setupConsumerProviderHierarchy kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchy : Party -> Party -> Script (ContractId DataStreamRequest)
 setupConsumerProviderHierarchy consumer provider = do
-    let operator = fromSome (partyFromText "Operator")
+    operator <- getScriptParty "Operator"
 
     submit operator $ createCmd CurrentTime with
       operator

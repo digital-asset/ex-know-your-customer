@@ -6,13 +6,13 @@
 daml 1.2
 module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearchTestSetup where
 
+import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup qualified as AutoRegisterTestSetup
 
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
 setup = do
-    let bank1 = fromSome (partyFromText "Bank1")
-        kycAnalystProviderParty = fromSome (partyFromText "KYC_Analyst")
+    bank1 <- getScriptParty "Bank1"
+    kycAnalystProviderParty <- getScriptParty "KYC_Analyst"
     AutoRegisterTestSetup.setupConsumerProviderHierarchyWithDataLicense bank1 kycAnalystProviderParty
