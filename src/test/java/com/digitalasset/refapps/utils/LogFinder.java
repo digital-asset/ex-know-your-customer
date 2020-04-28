@@ -5,7 +5,7 @@
 package com.digitalasset.refapps.utils;
 
 public class LogFinder {
-  private boolean found = false;
+  private volatile boolean found = false;
 
   public boolean found() {
     return found;
