@@ -107,9 +107,11 @@ jobs:
       - store_test_results:
           path: target/failsafe-reports
       - run:
+          name: Moving logs so they can be stored
           command: |
             mkdir logs
             mv *.log logs
+          when: always
       - store_artifacts:
           path: logs
       - persist_to_workspace:
