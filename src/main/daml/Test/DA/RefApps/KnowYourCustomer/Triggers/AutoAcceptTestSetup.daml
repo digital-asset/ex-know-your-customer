@@ -15,8 +15,9 @@ import Daml.Script
 
 setup : Script (ContractId DataLicenseProposal)
 setup = do
-    kycAnalyst <- getScriptParty "KYC_Analyst"
-    cipProviderParty <- getScriptParty "CIP_Provider"
+    let
+        kycAnalyst = getScriptParty "KYC_Analyst"
+        cipProviderParty = getScriptParty "CIP_Provider"
     setupConsumerProviderHierarchyWithProposal kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchyWithProposal : Party -> Party -> Script (ContractId DataLicenseProposal)

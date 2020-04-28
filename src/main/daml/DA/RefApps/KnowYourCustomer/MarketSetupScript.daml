@@ -148,15 +148,16 @@ setupMarket = do
 -- No proper party allocation on the ledger
 setupMarketForSandbox : Script ()
 setupMarketForSandbox = do
-  operator               <- getScriptParty "Operator"
-  cipProviderParty       <- getScriptParty "CIP_Provider"
-  cddProviderParty       <- getScriptParty "CDD_Provider"
-  screeningProviderParty <- getScriptParty "ScreeningProvider"
-  kycAnalystParty        <- getScriptParty "KYC_Analyst"
-  kycReviewerParty       <- getScriptParty "KYC_Reviewer"
-  kycQAParty             <- getScriptParty "KYC_QA"
-  bank1Party             <- getScriptParty "Bank1"
-  bank2Party             <- getScriptParty "Bank2"
+  let
+    operator               = getScriptParty "Operator"
+    cipProviderParty       = getScriptParty "CIP_Provider"
+    cddProviderParty       = getScriptParty "CDD_Provider"
+    screeningProviderParty = getScriptParty "ScreeningProvider"
+    kycAnalystParty        = getScriptParty "KYC_Analyst"
+    kycReviewerParty       = getScriptParty "KYC_Reviewer"
+    kycQAParty             = getScriptParty "KYC_QA"
+    bank1Party             = getScriptParty "Bank1"
+    bank2Party             = getScriptParty "Bank2"
   let parties = (LedgerParties
         operator
         cipProviderParty

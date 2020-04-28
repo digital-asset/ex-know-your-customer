@@ -6,8 +6,8 @@
 daml 1.2
 module DA.RefApps.KnowYourCustomer.Utils where
 
-import Daml.Script
+import DA.Optional
 
--- | Same as `getParty` in scenarios but for DAML Scripts.
-getScriptParty: Text -> Script Party
-getScriptParty name = allocatePartyWithHint name (PartyIdHint name)
+-- | Same as `getParty` in scenarios but useful in DAML Scripts.
+getScriptParty: Text -> Party
+getScriptParty = fromSome . partyFromText

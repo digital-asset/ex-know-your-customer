@@ -22,12 +22,13 @@ setup = do
 
 setupRawPublicationsAndResearchProcess : Script (ContractId ResearchProcess)
 setupRawPublicationsAndResearchProcess = do
-  operator <- getScriptParty "Operator"
-  analyst <- getScriptParty "KYC_Analyst"
-  reviewer <- getScriptParty "KYC_Reviewer"
-  qualityAssurance <- getScriptParty "KYC_QA"
-  cipProvider <- getScriptParty "CIP_Provider"
-  screeningProvider <- getScriptParty "ScreeningProvider"
+  let
+    operator = getScriptParty "Operator"
+    analyst = getScriptParty "KYC_Analyst"
+    reviewer = getScriptParty "KYC_Reviewer"
+    qualityAssurance = getScriptParty "KYC_QA"
+    cipProvider = getScriptParty "CIP_Provider"
+    screeningProvider = getScriptParty "ScreeningProvider"
   let
     label = observationReference
     consumer = Consumer with party = analyst

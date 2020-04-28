@@ -17,13 +17,15 @@ import Daml.Script
 
 setup : Script (ContractId DataStreamRequest)
 setup = do
-    kycAnalyst <- getScriptParty "KYC_Analyst"
-    cipProviderParty <- getScriptParty "CIP_Provider"
-    setupConsumerProviderHierarchy kycAnalyst cipProviderParty
+  let
+    kycAnalyst = getScriptParty "KYC_Analyst"
+    cipProviderParty = getScriptParty "CIP_Provider"
+  setupConsumerProviderHierarchy kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchy : Party -> Party -> Script (ContractId DataStreamRequest)
 setupConsumerProviderHierarchy consumer provider = do
-    operator <- getScriptParty "Operator"
+    let
+      operator = getScriptParty "Operator"
 
     submit operator $ createCmd CurrentTime with
       operator

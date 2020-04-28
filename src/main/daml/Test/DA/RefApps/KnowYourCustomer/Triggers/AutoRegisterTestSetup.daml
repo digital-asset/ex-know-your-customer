@@ -13,8 +13,9 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-    kycAnalyst <- getScriptParty "KYC_Analyst"
-    cipProviderParty <- getScriptParty "CIP_Provider"
+    let
+        kycAnalyst = getScriptParty "KYC_Analyst"
+        cipProviderParty = getScriptParty "CIP_Provider"
     setupConsumerProviderHierarchyWithDataLicense kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchyWithDataLicense : Party -> Party -> Script ()

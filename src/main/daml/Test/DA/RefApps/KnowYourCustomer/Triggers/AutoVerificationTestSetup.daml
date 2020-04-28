@@ -14,7 +14,8 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-  reviewer <- getScriptParty "KYC_Reviewer"
+  let
+    reviewer = getScriptParty "KYC_Reviewer"
   reviewRequest <- setupReviewRequest reviewer
   submit reviewer $ exerciseCmd reviewRequest ApproveReview
   pure ()

@@ -16,14 +16,16 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-  reviewer <- getScriptParty "KYC_Reviewer"
+  let
+    reviewer = getScriptParty "KYC_Reviewer"
   setupReviewRequest reviewer
   pure ()
 
 setupReviewRequest : Party -> Script (ContractId ReviewRequest)
 setupReviewRequest reviewer = do
-    analyst <- getScriptParty "KYC_Analyst"
-    qualityAssurance <- getScriptParty "KYC_QA"
+    let
+      analyst = getScriptParty "KYC_Analyst"
+      qualityAssurance = getScriptParty "KYC_QA"
 
     submit analyst $
       createCmd ReviewRequest with

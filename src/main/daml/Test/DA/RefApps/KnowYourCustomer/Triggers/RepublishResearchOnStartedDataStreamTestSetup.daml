@@ -17,8 +17,9 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-  analyst <- getScriptParty "KYC_Analyst"
-  reviewer <- getScriptParty "KYC_Reviewer"
+  let
+    analyst = getScriptParty "KYC_Analyst"
+    reviewer = getScriptParty "KYC_Reviewer"
   stream <- setupToMergeRawPublicationsOnEmptyDataStream
 
   let newObservation =

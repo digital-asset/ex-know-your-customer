@@ -13,6 +13,7 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-    bank1 <- getScriptParty "Bank1"
-    kycAnalystProviderParty <- getScriptParty "KYC_Analyst"
+    let
+        bank1 = getScriptParty "Bank1"
+        kycAnalystProviderParty = getScriptParty "KYC_Analyst"
     AutoRegisterTestSetup.setupConsumerProviderHierarchyWithDataLicense bank1 kycAnalystProviderParty
