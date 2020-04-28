@@ -8,18 +8,18 @@ import junit.framework.TestCase;
 
 public class FinderTest extends TestCase {
 
-  private final String alarm = "Trigger is running";
-  private final String some_noise = "Some noise";
+  private final String ALARM = "Trigger is running";
+  private final String NOISE = "Some noise";
 
   public void testFindsMatch() {
     LogFinder finder = new LogFinder();
-    finder.process(alarm);
+    finder.process(ALARM);
     assertTrue(finder.found());
   }
 
   public void testFindsOnlyMatchingLines() {
     LogFinder finder = new LogFinder();
-    finder.process(some_noise);
+    finder.process(NOISE);
     assertFalse(finder.found());
   }
 
@@ -30,8 +30,8 @@ public class FinderTest extends TestCase {
 
   public void testRemembersEarlierFindings() {
     LogFinder finder = new LogFinder();
-    finder.process(alarm);
-    finder.process(some_noise);
+    finder.process(ALARM);
+    finder.process(NOISE);
     assertTrue(finder.found());
   }
 }
