@@ -158,7 +158,7 @@ setupMarketForSandbox = do
     kycQAParty             = getScriptParty "KYC_QA"
     bank1Party             = getScriptParty "Bank1"
     bank2Party             = getScriptParty "Bank2"
-  let parties = (LedgerParties
+    parties = (LedgerParties
         operator
         cipProviderParty
         cddProviderParty
