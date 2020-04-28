@@ -8,6 +8,6 @@ module DA.RefApps.KnowYourCustomer.Utils where
 
 import Daml.Script
 
--- | Same as `getParty` scenarios but for DAML Scripts.
+-- | Same as `getParty` in scenarios but for DAML Scripts.
 getScriptParty: Text -> Script Party
 getScriptParty name = allocatePartyWithHint name (PartyIdHint name)
