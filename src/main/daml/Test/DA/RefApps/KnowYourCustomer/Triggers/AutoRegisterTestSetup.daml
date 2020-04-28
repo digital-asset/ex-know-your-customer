@@ -8,15 +8,17 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Roles
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup qualified as AutoAcceptTestSetup
+import DA.Optional
+import Daml.Script
 
-setup : Scenario ()
-setup = scenario $ do
-    kycAnalyst <- getParty "KYC_Analyst"
-    cipProviderParty <- getParty "CIP_Provider"
+setup : Script ()
+setup = do
+    let kycAnalyst = fromSome (partyFromText "KYC_Analyst")
+        cipProviderParty = fromSome (partyFromText "CIP_Provider")
     setupConsumerProviderHierarchyWithDataLicense kycAnalyst cipProviderParty
 
-setupConsumerProviderHierarchyWithDataLicense : Party -> Party -> Scenario ()
-setupConsumerProviderHierarchyWithDataLicense consumer provider = scenario $ do
+setupConsumerProviderHierarchyWithDataLicense : Party -> Party -> Script ()
+setupConsumerProviderHierarchyWithDataLicense consumer provider = do
     proposal <- AutoAcceptTestSetup.setupConsumerProviderHierarchyWithProposal consumer provider
-    consumer `submit` exercise proposal DataLicenseProposal_Accept
+    consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
     pure ()

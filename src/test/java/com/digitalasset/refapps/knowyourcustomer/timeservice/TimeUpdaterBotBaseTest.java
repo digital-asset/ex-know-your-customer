@@ -42,7 +42,7 @@ public abstract class TimeUpdaterBotBaseTest {
   @Before
   public void setup() {
     when(ledgerClient.getCommandSubmissionClient()).thenReturn(commandSubmissionClient);
-    when(commandSubmissionClient.submit(any(), any(), any(), any(), any(), any(), any()))
+    when(commandSubmissionClient.submit(any(), any(), any(), any(), any()))
         .thenReturn(Single.just(Empty.newBuilder().build()));
     when(ledgerClient.getActiveContractSetClient()).thenReturn(activeContractsClient);
   }

@@ -16,29 +16,33 @@ import DA.RefApps.KnowYourCustomer.Types
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeAndSendToReviewTestSetup
-import Test.DA.RefApps.KnowYourCustomer.Utils
+import DA.RefApps.KnowYourCustomer.MarketSetupScript
+import Test.DA.RefApps.KnowYourCustomer.Utils (createDataStream')
 
-setup : Scenario ()
-setup = scenario $ do
+import DA.Optional
+import Daml.Script
+
+setup : Script ()
+setup = do
   setupToMergeRawPublicationsOnEmptyDataStream
   pure ()
 
-setupToMergeRawPublicationsOnEmptyDataStream : Scenario (ContractId EmptyDataStream)
-setupToMergeRawPublicationsOnEmptyDataStream = scenario $ do
-  operator <- getParty "Operator"
-  analyst <- getParty "KYC_Analyst"
-  bank1 <- getParty "Bank1"
-  reviewer <- getParty "KYC_Reviewer"
-  qualityAssurance <- getParty "KYC_QA"
+setupToMergeRawPublicationsOnEmptyDataStream : Script (ContractId EmptyDataStream)
+setupToMergeRawPublicationsOnEmptyDataStream = do
+  let operator = fromSome (partyFromText "Operator")
+      analyst = fromSome (partyFromText "KYC_Analyst")
+      reviewer = fromSome (partyFromText "KYC_Reviewer")
+      qualityAssurance = fromSome (partyFromText "KYC_QA")
+      bank1 = fromSome (partyFromText "Bank1")
 
   operator `submit`
-    create CurrentTime with
+    createCmd CurrentTime with
       operator
       currentTime = appStartTime
       observers = [analyst]
 
   researchProcess <- setupRawPublicationsAndResearchProcess
-  createResearchResult researchProcess analyst reviewer qualityAssurance 
+  createResearchResult researchProcess analyst reviewer qualityAssurance
 
   stream <- createEmptyDataStream operator analyst bank1
   case stream of
@@ -60,19 +64,19 @@ setupToMergeRawPublicationsOnEmptyDataStream = scenario $ do
       researchScreening = Data $ createScreeningData 1
 
     createResearchResult researchProcess analyst reviewer qualityAssurance = do
-      reviewRequest <- submit analyst $ exercise researchProcess SendToReview with
+      reviewRequest <- submit analyst $ exerciseCmd researchProcess SendToReview with
           time = addRelTime appStartTime (hours 1)
           researchData = researchData
-      qaRequest <- submit reviewer $ exercise reviewRequest ApproveReview
-      submit qualityAssurance $ exercise qaRequest ApproveVerified
-    
+      qaRequest <- submit reviewer $ exerciseCmd reviewRequest ApproveReview
+      submit qualityAssurance $ exerciseCmd qaRequest ApproveVerified
+
     createEmptyDataStream operator analyst bank1 = do
-      operatorRole <- operator `submit` create OperatorRole with operator
+      operatorRole <- operator `submit` createCmd OperatorRole with operator
       relation <- createRelationship operator operatorRole analyst bank1
       let
         starting = addRelTime appStartTime (hours 1)
         ending = addRelTime appStartTime (days 1)
         staleHours = 3
-      createDataStream
+      createDataStream'
         analyst bank1 relation
         reference starting ending staleHours (SubscriptionFee 10.0)

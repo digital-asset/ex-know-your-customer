@@ -14,6 +14,7 @@ import DA.RefApps.KnowYourCustomer.Publication
 import DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 
+
 testMergeObservationsForDefaultInclusionConfig : Scenario ()
 testMergeObservationsForDefaultInclusionConfig = do
   consumerParty <- getParty "KYC_Analyst"

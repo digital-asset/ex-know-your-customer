@@ -2,18 +2,20 @@
 # Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 #
 
-ARG sdk_vsn=0.13.54
+ARG sdk_vsn=1.0.0
 
 FROM digitalasset/daml-sdk:${sdk_vsn}
 
 WORKDIR /home/daml
 
 COPY target/know-your-customer.dar /home/daml/
-COPY scripts/startTriggers.sh /home/daml/
+COPY --chown=daml scripts/startTriggers.sh /home/daml/
+COPY --chown=daml scripts/waitForSandbox.sh /home/daml/
 
 USER root
 RUN chown daml know-your-customer.dar
 RUN chmod +rx /home/daml/startTriggers.sh
 USER daml
 
-CMD ~/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"
+CMD ~/waitForSandbox.sh ${SANDBOX_HOST} ${SANDBOX_PORT} && \
+    ~/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"

@@ -97,8 +97,6 @@ public class TimeUpdaterBot {
             submitCommandsRequest.getApplicationId(),
             submitCommandsRequest.getCommandId(),
             submitCommandsRequest.getParty(),
-            submitCommandsRequest.getLedgerEffectiveTime(),
-            submitCommandsRequest.getMaximumRecordTime(),
             commands)
         .blockingGet();
   }

@@ -51,12 +51,13 @@ public class PublishResearchOnEmptyDataStreamIT extends TriggerTest {
 
   @Test
   public void testReviewedResearchIsPublishedOnEmptyDataStream() {
-    doTestReviewedResearchIsPublished(sandbox);
+    doTestReviewedResearchIsPublished(sandbox, 1);
   }
 
-  static void doTestReviewedResearchIsPublished(Sandbox sandbox) {
+  static void doTestReviewedResearchIsPublished(Sandbox sandbox, int numberOfDataStreams) {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
-    assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, 1, DataStream.TEMPLATE_ID);
+    assertContractsCreatedExactlyNTimes(
+        KYC_ANALYST, ledger, numberOfDataStreams, DataStream.TEMPLATE_ID);
     assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, 2, ResearchProcess.TEMPLATE_ID);
     ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);
     ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);

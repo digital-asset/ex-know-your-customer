@@ -10,13 +10,16 @@ import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup as AutoProposeTestSetup
 
-setup : Scenario (ContractId DataLicenseProposal)
-setup = scenario $ do
-    kycAnalyst <- getParty "KYC_Analyst"
-    cipProviderParty <- getParty "CIP_Provider"
+import DA.Optional
+import Daml.Script
+
+setup : Script (ContractId DataLicenseProposal)
+setup = do
+    let kycAnalyst = fromSome (partyFromText "KYC_Analyst")
+        cipProviderParty = fromSome (partyFromText "CIP_Provider")
     setupConsumerProviderHierarchyWithProposal kycAnalyst cipProviderParty
 
-setupConsumerProviderHierarchyWithProposal : Party -> Party -> Scenario (ContractId DataLicenseProposal)
-setupConsumerProviderHierarchyWithProposal consumer provider = scenario $ do
+setupConsumerProviderHierarchyWithProposal : Party -> Party -> Script (ContractId DataLicenseProposal)
+setupConsumerProviderHierarchyWithProposal consumer provider = do
     request <- AutoProposeTestSetup.setupConsumerProviderHierarchy consumer provider
-    provider `submit` exercise request DataStreamRequest_Propose with price = SubscriptionFee 1.0
+    provider `submit` exerciseCmd request DataStreamRequest_Propose with price = SubscriptionFee 1.0

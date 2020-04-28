@@ -54,8 +54,6 @@ public class TimeUpdaterBotTest extends TimeUpdaterBotBaseTest {
             eq("Test"),
             anyString(),
             eq(operator),
-            any(),
-            any(),
             commands.capture());
     List<Command> updateCommands = commands.getValue();
     TimeManager.ContractId currentTimeCid =

@@ -7,6 +7,6 @@ daml 1.2
 
 module DA.RefApps.KnowYourCustomer.Triggers.Logging where
 
-debugLog : (Show a, Applicative m) => Text -> Party -> a -> m ()
+debugLog : (Show a, Action m) => Text -> Party -> a -> m ()
 debugLog triggerName party value =
     debug $ "[" <> triggerName <> "-" <> partyToText party <> "] " <> show value

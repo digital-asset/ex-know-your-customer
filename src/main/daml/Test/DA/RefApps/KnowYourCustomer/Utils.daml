@@ -9,6 +9,8 @@ module Test.DA.RefApps.KnowYourCustomer.Utils where
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 
+import Daml.Script
+
 createRelationship : Party -> ContractId OperatorRole -> Party -> Party
                   -> Scenario PublisherRelationship
 createRelationship operator operatorRole publisher consumer = do
@@ -29,3 +31,13 @@ createDataStream publisher consumer (PublisherRelationship relationship pubRole)
   proposal <- publisher `submit` exercise request DataStreamRequest_Propose with price
   license <- consumer `submit` exercise proposal DataLicenseProposal_Accept
   publisher `submit` exercise pubRole RegisterLicense with licenseId = license
+
+createDataStream' : Party -> Party -> PublisherRelationship ->
+                   ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
+                   Script SomeDataStream
+createDataStream' publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
+  request <- consumer `submit` exerciseCmd relationship RequestStream
+    with reference, starting, ending, staleHours
+  proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
+  license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
+  publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license

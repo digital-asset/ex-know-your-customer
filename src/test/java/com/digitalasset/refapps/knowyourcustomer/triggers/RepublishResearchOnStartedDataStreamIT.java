@@ -37,6 +37,6 @@ public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
 
   @Test
   public void testReviewedResearchIsRepublishedOnDataStream() {
-    PublishResearchOnEmptyDataStreamIT.doTestReviewedResearchIsPublished(sandbox);
+    PublishResearchOnEmptyDataStreamIT.doTestReviewedResearchIsPublished(sandbox, 2);
   }
 }

@@ -9,7 +9,7 @@ executors:
   mvn-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
-    resource_class: large
+    resource_class: xlarge
   daml-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
@@ -136,8 +136,9 @@ jobs:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
             daml build -o target/know-your-customer.dar
-            daml test --junit target/daml-test-reports/daml-test.xml
-            daml test-script --dar target/know-your-customer.dar
+            ./scripts/runDamlScript.sh \
+              "target/know-your-customer.dar" \
+              "DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox"
       - save_cache:
           paths:
             - ~/.daml
@@ -163,20 +164,20 @@ workflows:
   build_and_test:
     jobs:
       - daml_test:
-          daml_sdk_version: "0.13.54"
+          daml_sdk_version: "1.0.0"
       - mvn_test:
-          daml_sdk_version: "0.13.54"
+          daml_sdk_version: "1.0.0"
       - blackduck_check:
-          daml_sdk_version: "0.13.54"
+          daml_sdk_version: "1.0.0"
           context: blackduck
   build_and_release:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.54"
+          daml_sdk_version: "1.0.0"
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.54"
+          daml_sdk_version: "1.0.0"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context
