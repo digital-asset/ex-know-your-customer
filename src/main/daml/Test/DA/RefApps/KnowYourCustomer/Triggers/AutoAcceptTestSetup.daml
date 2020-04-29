@@ -8,15 +8,16 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup as AutoProposeTestSetup
 
-import DA.Optional
 import Daml.Script
 
 setup : Script (ContractId DataLicenseProposal)
 setup = do
-    let kycAnalyst = fromSome (partyFromText "KYC_Analyst")
-        cipProviderParty = fromSome (partyFromText "CIP_Provider")
+    let
+        kycAnalyst = getScriptParty "KYC_Analyst"
+        cipProviderParty = getScriptParty "CIP_Provider"
     setupConsumerProviderHierarchyWithProposal kycAnalyst cipProviderParty
 
 setupConsumerProviderHierarchyWithProposal : Party -> Party -> Script (ContractId DataLicenseProposal)

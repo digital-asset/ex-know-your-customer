@@ -13,11 +13,11 @@ import Daml.Script
 import Prelude hiding (submit, submitMustFail)
 import DA.Assert
 import DA.TimeService.TimeService
-import DA.Optional (fromSome)
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
+import DA.RefApps.KnowYourCustomer.Utils
 
 data MarketSetupData = MarketSetupData
   with
@@ -149,25 +149,25 @@ setupMarket = do
 setupMarketForSandbox : Script ()
 setupMarketForSandbox = do
   let
-    operator               = fromSome (partyFromText "Operator")
-    cipProviderParty       = fromSome (partyFromText "CIP_Provider")
-    cddProviderParty       = fromSome (partyFromText "CDD_Provider")
-    screeningProviderParty = fromSome (partyFromText "ScreeningProvider")
-    kycAnalystParty        = fromSome (partyFromText "KYC_Analyst")
-    kycReviewerParty       = fromSome (partyFromText "KYC_Reviewer")
-    kycQAParty             = fromSome (partyFromText "KYC_QA")
-    bank1Party             = fromSome (partyFromText "Bank1")
-    bank2Party             = fromSome (partyFromText "Bank2")
+    operator               = getScriptParty "Operator"
+    cipProviderParty       = getScriptParty "CIP_Provider"
+    cddProviderParty       = getScriptParty "CDD_Provider"
+    screeningProviderParty = getScriptParty "ScreeningProvider"
+    kycAnalystParty        = getScriptParty "KYC_Analyst"
+    kycReviewerParty       = getScriptParty "KYC_Reviewer"
+    kycQAParty             = getScriptParty "KYC_QA"
+    bank1Party             = getScriptParty "Bank1"
+    bank2Party             = getScriptParty "Bank2"
     parties = (LedgerParties
-      operator
-      cipProviderParty
-      cddProviderParty
-      screeningProviderParty
-      kycAnalystParty
-      kycReviewerParty
-      kycQAParty
-      bank1Party
-      bank2Party)
+        operator
+        cipProviderParty
+        cddProviderParty
+        screeningProviderParty
+        kycAnalystParty
+        kycReviewerParty
+        kycQAParty
+        bank1Party
+        bank2Party)
   initialize parties
   pure ()
 
