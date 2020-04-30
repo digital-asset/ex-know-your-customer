@@ -11,15 +11,15 @@ import DA.TimeService.TimeService
 
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.RefApps.KnowYourCustomer.MarketSetupScript
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
 import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeAndSendToReviewTestSetup
-import DA.RefApps.KnowYourCustomer.MarketSetupScript
 import Test.DA.RefApps.KnowYourCustomer.Utils (createDataStream')
 
-import DA.Optional
 import Daml.Script
 
 setup : Script ()
@@ -29,11 +29,12 @@ setup = do
 
 setupToMergeRawPublicationsOnEmptyDataStream : Script (ContractId EmptyDataStream)
 setupToMergeRawPublicationsOnEmptyDataStream = do
-  let operator = fromSome (partyFromText "Operator")
-      analyst = fromSome (partyFromText "KYC_Analyst")
-      reviewer = fromSome (partyFromText "KYC_Reviewer")
-      qualityAssurance = fromSome (partyFromText "KYC_QA")
-      bank1 = fromSome (partyFromText "Bank1")
+  let
+    operator = getScriptParty "Operator"
+    analyst = getScriptParty "KYC_Analyst"
+    reviewer = getScriptParty "KYC_Reviewer"
+    qualityAssurance = getScriptParty "KYC_QA"
+    bank1 = getScriptParty "Bank1"
 
   operator `submit`
     createCmd CurrentTime with

@@ -1,0 +1,13 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.KnowYourCustomer.Utils where
+
+import DA.Optional
+
+-- | Same as `getParty` in scenarios but useful in DAML Scripts.
+getScriptParty: Text -> Party
+getScriptParty = fromSome . partyFromText
