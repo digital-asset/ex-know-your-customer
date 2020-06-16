@@ -4,14 +4,9 @@
  */
 package com.digitalasset.refapps.utils;
 
-import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
-
 import com.daml.ledger.javaapi.data.Party;
 import java.io.File;
 import java.nio.file.Path;
-import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,32 +30,8 @@ public class Trigger {
   public void start() throws Throwable {
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
 
-    LogFinder logFinder = new LogFinder();
-    Tailer tailer = createTailer(logFinder);
-    Thread thread = new Thread(tailer);
-    thread.start();
-
     trigger = processBuilder.start();
-    try {
-      eventually(() -> Assert.assertTrue(logFinder.found()));
-    } finally {
-      tailer.stop();
-    }
     logger.info("Started.");
-  }
-
-  private Tailer createTailer(LogFinder logFinder) {
-
-    class LogTailerListener extends TailerListenerAdapter {
-      public void handle(String line) {
-        logFinder.process(line);
-      }
-    }
-
-    LogTailerListener listener = new LogTailerListener();
-    boolean fromEndOfFile = true;
-    int delayMillis = 1000;
-    return new Tailer(logFile, listener, delayMillis, fromEndOfFile);
   }
 
   public void stop() {

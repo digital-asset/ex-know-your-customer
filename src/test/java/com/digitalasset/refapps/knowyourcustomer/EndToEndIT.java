@@ -66,7 +66,8 @@ public class EndToEndIT {
               KYC_REVIEWER,
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
-          .timeout(Duration.ofSeconds(90))
+          .sandboxWaitTimeout(Duration.ofSeconds(90))
+          .observationTimeout(Duration.ofSeconds(180))
           .setupAppCallback(Main.runBots(new AppParties(ALL_PARTIES), systemPeriodTime))
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
