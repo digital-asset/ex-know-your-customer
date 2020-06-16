@@ -18,6 +18,6 @@ public class LogFinder {
   }
 
   private static boolean matches(String line) {
-    return line.contains("Trigger is running");
+    return line.replaceAll(" ", "").contains("Trigger" + "is" + "running");
   }
 }
