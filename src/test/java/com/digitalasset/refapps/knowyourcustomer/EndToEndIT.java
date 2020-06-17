@@ -11,6 +11,7 @@ import static org.junit.Assert.fail;
 
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.refapps.knowyourcustomer.utils.AppParties;
+import com.digitalasset.refapps.utils.TestConstants;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
@@ -66,8 +67,8 @@ public class EndToEndIT {
               KYC_REVIEWER,
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
-          .sandboxWaitTimeout(Duration.ofSeconds(90))
-          .observationTimeout(Duration.ofSeconds(180))
+          .sandboxWaitTimeout(TestConstants.SANDBOX_WAIT_TIMEOUT)
+          .observationTimeout(TestConstants.OBSERVATION_TIMEOUT)
           .setupAppCallback(Main.runBots(new AppParties(ALL_PARTIES), systemPeriodTime))
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();

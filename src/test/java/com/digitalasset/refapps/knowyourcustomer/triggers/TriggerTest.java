@@ -5,6 +5,7 @@
 package com.digitalasset.refapps.knowyourcustomer.triggers;
 
 import com.daml.ledger.javaapi.data.Party;
+import com.digitalasset.refapps.utils.TestConstants;
 import com.digitalasset.refapps.utils.Trigger;
 import com.digitalasset.testing.junit4.Sandbox;
 import java.nio.file.Paths;
@@ -24,8 +25,8 @@ public abstract class TriggerTest {
         .dar(Paths.get("target/know-your-customer.dar"))
         .parties(OPERATOR, CIP_PROVIDER, BANK_1, KYC_ANALYST, KYC_REVIEWER, KYC_QUALITYASSURANCE)
         .moduleAndScript(module, "setup")
-        .sandboxWaitTimeout(Duration.ofSeconds(90))
-        .observationTimeout(Duration.ofSeconds(300))
+        .sandboxWaitTimeout(TestConstants.SANDBOX_WAIT_TIMEOUT)
+        .observationTimeout(TestConstants.OBSERVATION_TIMEOUT)
         .build();
   }
 
