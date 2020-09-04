@@ -9,6 +9,7 @@ module Test.DA.RefApps.KnowYourCustomer.RolesTest where
 import DA.Date
 import DA.Time as T
 import DA.TimeService.TimeService
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
@@ -18,24 +19,24 @@ import Test.DA.RefApps.KnowYourCustomer.Utils
 
 
 roleSetup :
-  Scenario (
+  Script (
     ObservationReference, Observation, Party, Party,
     PublisherRelationship,
     Time, Time, ContractId CurrentTime, Party, ContractId EmptyDataStream, Int)
-roleSetup = scenario do
-  operator <- getParty "Operator"
-  kycAnalystParty <- getParty "KYC_Analyst"
-  bankParty <- getParty "EndUser"
+roleSetup = script do
+  operator <- allocateParty "Operator"
+  kycAnalystParty <- allocateParty "KYC_Analyst"
+  bankParty <- allocateParty "EndUser"
 
   let today = date 2019 Nov 12
       now = T.time today 14 57 0
   currentTimeCid <- operator `submit`
-    create CurrentTime with
+    createCmd CurrentTime with
       operator
       currentTime = now
       observers = [kycAnalystParty, bankParty]
 
-  operatorRole <- operator `submit` create OperatorRole with operator
+  operatorRole <- operator `submit` createCmd OperatorRole with operator
 
   mdvCon1Relation <- createRelationship operator operatorRole kycAnalystParty bankParty
 

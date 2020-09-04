@@ -9,6 +9,7 @@ module Test.DA.RefApps.KnowYourCustomer.RenewalTest where
 import DA.Assert
 import DA.TimeService.TimeService
 import DA.Time as T
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
@@ -16,12 +17,12 @@ import DA.RefApps.KnowYourCustomer.Types
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 import Test.DA.RefApps.KnowYourCustomer.Utils
 
-testLicenseRenewal : Scenario ()
-testLicenseRenewal = scenario do
+testLicenseRenewal : Script ()
+testLicenseRenewal = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
   mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
 
   let
@@ -30,14 +31,14 @@ testLicenseRenewal = scenario do
     someCIP = createCIP 4890
 
   currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateObservation with
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP
-    mdvStream <- fetch mdvStreamId
-    mdvStream.consumers === []
+  Some mdvStream <- queryContractId mdVendorParty mdvStreamId
+  mdvStream.consumers === []
 
   createDataStream
     mdVendorParty bankParty mdvCon1Relation
@@ -47,11 +48,12 @@ testLicenseRenewal = scenario do
     lookupKey = (Publisher mdVendorParty, reference)
     newCIP = createCIP 8229
 
-  submit mdVendorParty do
-    (renewedStreamId, _) <- fetchByKey @DataStream lookupKey
-    renewedStreamId <- exercise renewedStreamId UpdateObservation with
+  Some (renewedStreamId, _) <- queryContractKey @DataStream mdVendorParty lookupKey
+  renewedStreamId <- submit mdVendorParty do
+    exerciseCmd renewedStreamId UpdateObservation with
       time = now
       newValue = newCIP
-    renewedStream <- fetch renewedStreamId
-    renewedStream.consumers === [Consumer bankParty]
-    renewedStream.observation.value === newCIP
+
+  Some renewedStream <- queryContractId mdVendorParty renewedStreamId
+  renewedStream.consumers === [Consumer bankParty]
+  renewedStream.observation.value === newCIP

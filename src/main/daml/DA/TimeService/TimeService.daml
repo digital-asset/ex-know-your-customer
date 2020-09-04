@@ -26,6 +26,12 @@ template CurrentTime
     key operator: Party
     maintainer key
 
+    nonconsuming choice GetCurrentTime : Time
+      with
+        p : Party
+      controller p
+      do pure currentTime
+
     controller operator can
       UpdateCurrentTime: ContractId CurrentTime
         with newCurrentTime: Time

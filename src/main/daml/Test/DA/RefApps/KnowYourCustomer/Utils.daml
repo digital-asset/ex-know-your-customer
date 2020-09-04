@@ -12,25 +12,25 @@ import DA.RefApps.KnowYourCustomer.Roles
 import Daml.Script
 
 createRelationship : Party -> ContractId OperatorRole -> Party -> Party
-                  -> Scenario PublisherRelationship
+                  -> Script PublisherRelationship
 createRelationship operator operatorRole publisher consumer = do
   let p = Publisher with party = publisher
       c = Consumer with party = consumer
-  (relationRequest, roleRequest) <- operator `submit` exercise operatorRole InvitePublisherConsumer with publisher = p, consumer = c
-  publisherAccept <- publisher `submit` exercise relationRequest PublisherInvitation_Accept
-  publisherRole <- publisher `submit` exercise roleRequest PublisherRoleInvitation_Accept
-  relationship <- consumer `submit` exercise publisherAccept ConsumerInvitation_Accept
+  (relationRequest, roleRequest) <- operator `submit` exerciseCmd operatorRole InvitePublisherConsumer with publisher = p, consumer = c
+  publisherAccept <- publisher `submit` exerciseCmd relationRequest PublisherInvitation_Accept
+  publisherRole <- publisher `submit` exerciseCmd roleRequest PublisherRoleInvitation_Accept
+  relationship <- consumer `submit` exerciseCmd publisherAccept ConsumerInvitation_Accept
   return $ PublisherRelationship relationship publisherRole
 
 createDataStream : Party -> Party -> PublisherRelationship ->
                    ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
-                   Scenario SomeDataStream
+                   Script SomeDataStream
 createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
-  request <- consumer `submit` exercise relationship RequestStream
+  request <- consumer `submit` exerciseCmd relationship RequestStream
     with reference, starting, ending, staleHours
-  proposal <- publisher `submit` exercise request DataStreamRequest_Propose with price
-  license <- consumer `submit` exercise proposal DataLicenseProposal_Accept
-  publisher `submit` exercise pubRole RegisterLicense with licenseId = license
+  proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
+  license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
+  publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license
 
 createDataStream' : Party -> Party -> PublisherRelationship ->
                    ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
@@ -41,3 +41,9 @@ createDataStream' publisher consumer (PublisherRelationship relationship pubRole
   proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
   license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
   publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license
+
+
+queryContractKey : forall t k. (TemplateKey t k, Eq k) => Party -> k -> Script (Optional (ContractId t, t))
+queryContractKey p k =
+  find (\(_, t) -> key t == k) <$>
+  query @t p
