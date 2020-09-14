@@ -24,7 +24,6 @@ dependencies:
   - daml-script
   - daml-trigger
 build-options:
-  - '--target=1.7'
   - '--ghc-option'
   - '-Werror'
   - '--ghc-option'
