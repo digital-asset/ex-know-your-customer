@@ -9,6 +9,7 @@ module DA.RefApps.KnowYourCustomer.DataStream where
 import DA.Foldable
 import DA.TimeService.TimeService
 import DA.Action
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
@@ -164,3 +165,10 @@ checkIsExpired : Party -> LicenseData -> Update Bool
 checkIsExpired operator licenseData = do
   currentTime <- fetchTime operator
   pure $ isLicenseExpired licenseData currentTime
+
+checkIsExpiredScript : Party -> Party -> LicenseData -> Script Bool
+checkIsExpiredScript submitter operator licenseData = do
+  currentTime <- submit submitter do
+    exerciseByKeyCmd @CurrentTime operator (GetCurrentTime submitter)
+  pure $ isLicenseExpired licenseData currentTime
+

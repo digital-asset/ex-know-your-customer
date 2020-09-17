@@ -3,12 +3,13 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-daml 1.2
+{-# LANGUAGE ApplicativeDo #-}
 module Test.DA.RefApps.KnowYourCustomer.ComplaintsTest where
 
 import DA.Assert
 import DA.TimeService.TimeService
 import DA.Time as T
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.DataLicense
@@ -16,9 +17,10 @@ import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
 
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
+import Test.DA.RefApps.KnowYourCustomer.Utils
 
-testConsumerCanClaimNonPerformance : Scenario ()
-testConsumerCanClaimNonPerformance = scenario do
+testConsumerCanClaimNonPerformance : Script ()
+testConsumerCanClaimNonPerformance = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
   let
@@ -26,34 +28,33 @@ testConsumerCanClaimNonPerformance = scenario do
     licenseKey = (Publisher mdVendorParty, Consumer bankParty, reference)
 
   currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterStart
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterStart
 
-  submit bankParty do
-    (licenseId, license) <- fetchByKey @RegisteredDataLicense licenseKey
-    nonPerformanceCid <- exercise licenseId RegisteredDataLicense_ClaimNonPerformance
-    nonPerformance <- fetch nonPerformanceCid
-    nonPerformance.licenseData === license.licenseData
-    nonPerformance.claimed === afterStart
+  Some (licenseId, license) <- queryContractKey @RegisteredDataLicense bankParty licenseKey
+  nonPerformantCid <- submit bankParty do
+    exerciseCmd licenseId RegisteredDataLicense_ClaimNonPerformance
+  Some nonPerformance <- queryContractId @NonPerformance bankParty nonPerformantCid
+  nonPerformance.licenseData === license.licenseData
+  nonPerformance.claimed === afterStart
 
   submitMustFail mdVendorParty $
-    exercise mdvStreamId StartDataStream with
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
 
-testConsumerCannotClaimNonPerformanceBeforeStart : Scenario ()
-testConsumerCannotClaimNonPerformanceBeforeStart = scenario do
+testConsumerCannotClaimNonPerformanceBeforeStart : Script ()
+testConsumerCannotClaimNonPerformanceBeforeStart = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
   let
     licenseKey = (Publisher mdVendorParty, Consumer bankParty, reference)
 
-  (licenseId, _) <- submit bankParty do
-    fetchByKey @RegisteredDataLicense licenseKey
+  Some (licenseId, _) <- queryContractKey @RegisteredDataLicense bankParty licenseKey
 
   submitMustFail bankParty do
-    exercise licenseId RegisteredDataLicense_ClaimNonPerformance
+    exerciseCmd licenseId RegisteredDataLicense_ClaimNonPerformance
 
-testConsumerCanClaimStalePublication : Scenario ()
-testConsumerCanClaimStalePublication = scenario do
+testConsumerCanClaimStalePublication : Script ()
+testConsumerCanClaimStalePublication = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
     <- roleSetup
 
@@ -62,27 +63,29 @@ testConsumerCanClaimStalePublication = scenario do
     afterStale = addRelTime now (hours (staleHours + 1))
     someCIP = createCIP 211
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
-    exercise mdvStreamId UpdateObservation with
+  submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP
 
   submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterStale
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterStale
 
-  submit bankParty do
-    (licenseId, license) <- fetchByKey @LiveStreamLicense lookupKey
-    (publicationId, publication) <- fetchByKey @Publication lookupKey
-    stalePublicationCid <- exercise licenseId ClaimStale with publicationId
-    stalePublication <- fetch stalePublicationCid
-    stalePublication.licenseData === license.licenseData
-    stalePublication.publication === publication
-    stalePublication.claimed === afterStale
+  Some (licenseId, license) <- queryContractKey @LiveStreamLicense bankParty lookupKey
+  Some (publicationId, publication) <- queryContractKey @Publication bankParty lookupKey
 
-testConsumerCannotClaimStalePublicationBeforeStaleTime : Scenario ()
-testConsumerCannotClaimStalePublicationBeforeStaleTime = scenario do
+  stalePublicationCid <- submit bankParty do
+    exerciseCmd licenseId ClaimStale with publicationId
+  Some stalePublication <- queryContractId bankParty stalePublicationCid
+  stalePublication.licenseData === license.licenseData
+  stalePublication.publication === publication
+  stalePublication.claimed === afterStale
+
+testConsumerCannotClaimStalePublicationBeforeStaleTime : Script ()
+testConsumerCannotClaimStalePublicationBeforeStaleTime = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
     <- roleSetup
 
@@ -91,26 +94,25 @@ testConsumerCannotClaimStalePublicationBeforeStaleTime = scenario do
     beforeStale = addRelTime now (hours (staleHours - 1))
     someCIP = createCIP 463
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
-    exercise mdvStreamId UpdateObservation with
+  submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP
 
   submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = beforeStale
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = beforeStale
 
-  (licenseId, publicationId) <- submit bankParty do
-    (licenseId, _) <- fetchByKey @LiveStreamLicense lookupKey
-    (publicationId, _) <- fetchByKey @Publication lookupKey
-    pure (licenseId, publicationId)
+  Some (licenseId, _) <- queryContractKey @LiveStreamLicense bankParty lookupKey
+  Some (publicationId, _) <- queryContractKey bankParty lookupKey
 
   submitMustFail bankParty do
-    exercise licenseId ClaimStale with publicationId
+    exerciseCmd licenseId ClaimStale with publicationId
 
-consumerCanStartDisputeAboutQuality : Scenario ()
-consumerCanStartDisputeAboutQuality = scenario do
+consumerCanStartDisputeAboutQuality : Script ()
+consumerCanStartDisputeAboutQuality = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
     <- roleSetup
 
@@ -119,21 +121,22 @@ consumerCanStartDisputeAboutQuality = scenario do
     afterStale = addRelTime now (hours (staleHours + 1))
     someCIP = createCIP 211
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId StartDataStream with
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
-    exercise mdvStreamId UpdateObservation with
+  submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateObservation with
       time = now
       newValue = someCIP
 
   submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterStale
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterStale
 
-  submit bankParty do
-    let actualDescription = "bad quality"
-    (licenseId, license) <- fetchByKey @LiveStreamLicense lookupKey
-    (publicationId, publication) <- fetchByKey @Publication lookupKey
-    disputedStreamQualityCid <- exercise publicationId DisputeQuality with description = actualDescription
-    disputedStreamQuality <- fetch disputedStreamQualityCid
-    disputedStreamQuality.publication === publication
-    disputedStreamQuality.description === actualDescription
+  Some (licenseId, license) <- queryContractKey @LiveStreamLicense bankParty lookupKey
+  Some (publicationId, publication) <- queryContractKey @Publication bankParty lookupKey
+  let actualDescription = "bad quality"
+  disputedStreamQualityCid <- submit bankParty do
+    exerciseCmd publicationId DisputeQuality with description = actualDescription
+  Some disputedStreamQuality <- queryContractId bankParty disputedStreamQualityCid
+  disputedStreamQuality.publication === publication
+  disputedStreamQuality.description === actualDescription

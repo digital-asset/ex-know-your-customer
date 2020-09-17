@@ -8,6 +8,7 @@ module Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest where
 
 import DA.Assert
 import DA.Time
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
@@ -15,11 +16,11 @@ import DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
 
 
-testMergeObservationsForDefaultInclusionConfig : Scenario ()
+testMergeObservationsForDefaultInclusionConfig : Script ()
 testMergeObservationsForDefaultInclusionConfig = do
-  consumerParty <- getParty "KYC_Analyst"
-  publisherParty <- getParty "SomeProvider"
-  operator <- getParty "Operator"
+  consumerParty <- allocateParty "KYC_Analyst"
+  publisherParty <- allocateParty "SomeProvider"
+  operator <- allocateParty "Operator"
   let
     label = observationReference
     labelOther = label with customerName = "Some Other Text"

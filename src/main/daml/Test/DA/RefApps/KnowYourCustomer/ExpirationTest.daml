@@ -10,6 +10,7 @@ import DA.Assert
 import DA.Time qualified as T
 import DA.Date
 import DA.TimeService.TimeService
+import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.DataStream
@@ -17,91 +18,92 @@ import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
 
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
+import Test.DA.RefApps.KnowYourCustomer.Utils
 
-testLicenseExpiryClosesNonFreshStream : Scenario ()
-testLicenseExpiryClosesNonFreshStream = scenario do
+testLicenseExpiryClosesNonFreshStream : Script ()
+testLicenseExpiryClosesNonFreshStream = script do
   (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
   mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
 
   currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateObservation with
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateObservation with
       time = now
       newValue = createCIP 372
-    mdvStream <- fetch mdvStreamId
-    mdvStream.consumers === []
+  Some mdvStream <- queryContractId mdVendorParty mdvStreamId
+  mdvStream.consumers === []
 
   let
     publisher = Publisher mdVendorParty
     consumer = Consumer bankParty
     lookupKey = (publisher, consumer, reference)
 
-  publication <- submit mdVendorParty do lookupByKey @Publication lookupKey
+  publication <- queryContractKey @Publication mdVendorParty lookupKey
   case publication of
     Some _ -> fail "unexpected contract: Publication should have been closed"
     None -> pure ()
 
-  liveStreamLicense <- submit mdVendorParty do lookupByKey @LiveStreamLicense lookupKey
+  liveStreamLicense <- queryContractKey @LiveStreamLicense mdVendorParty lookupKey
   case liveStreamLicense of
     Some _ -> fail "unexpected contract: LiveStreamLicense should have been expired"
     None -> pure ()
 
-testLicenseExpiryPreventsStartingStream : Scenario ()
-testLicenseExpiryPreventsStartingStream = scenario do
+testLicenseExpiryPreventsStartingStream : Script ()
+testLicenseExpiryPreventsStartingStream = script do
   (reference, currentObservation, operator,  _, _, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
 
   currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
   submitMustFail mdVendorParty do
-    exercise mdvStreamId StartDataStream with
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
 
-testLicenseExpiryClosesFreshStream : Scenario ()
-testLicenseExpiryClosesFreshStream = scenario do
+testLicenseExpiryClosesFreshStream : Script ()
+testLicenseExpiryClosesFreshStream = script do
   (reference, currentObservation, operator, endUserParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, _)
     <- roleSetup
   mdvStreamId <- submit mdVendorParty $
-    exercise mdvStreamId StartDataStream with
+    exerciseCmd mdvStreamId StartDataStream with
       newObservation = currentObservation
 
   currentTime <- submit operator do
-    exercise currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
+    exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = afterExpiry
 
-  submit mdVendorParty do
-    mdvStreamId <- exercise mdvStreamId UpdateLicenses
-    mdvStream <- fetch mdvStreamId
-    mdvStream.consumers === []
+  mdvStreamId <- submit mdVendorParty do
+    exerciseCmd mdvStreamId UpdateLicenses
+  Some mdvStream <- queryContractId mdVendorParty mdvStreamId
+  mdvStream.consumers === []
 
   let
     publisher = Publisher mdVendorParty
     consumer = Consumer endUserParty
     lookupKey = (publisher, consumer, reference)
 
-  publication <- submit mdVendorParty do lookupByKey @Publication lookupKey
+  publication <- queryContractKey @Publication mdVendorParty lookupKey
   case publication of
     Some _ -> fail "unexpected contract: Publication should have been closed"
     None -> pure ()
 
-  liveStreamLicense <- submit mdVendorParty do lookupByKey @LiveStreamLicense lookupKey
+  liveStreamLicense <- queryContractKey @LiveStreamLicense mdVendorParty lookupKey
   case liveStreamLicense of
     Some _ -> fail "unexpected contract: LiveStreamLicense should have been expired"
     None -> pure ()
 
-testCheckIsExpire : Scenario ()
-testCheckIsExpire = scenario $ do
-  operator <- getParty "Operator"
-  party1 <- getParty "Party1"
-  party2 <- getParty "Party1"
+testCheckIsExpire : Script ()
+testCheckIsExpire = script $ do
+  operator <- allocateParty "Operator"
+  party1 <- allocateParty "Party1"
+  party2 <- allocateParty "Party1"
 
   currentTimeCid <- submit operator do
-    create CurrentTime with
+    createCmd CurrentTime with
       operator = operator
       currentTime = appStartTime
       observers = [operator, party1, party2]
@@ -119,9 +121,9 @@ testCheckIsExpire = scenario $ do
         stale = T.hours 1
         price = SubscriptionFee 1.0
         operator = operator
-  result <- submit party1 $ checkIsExpired operator licenseData
+  result <- checkIsExpiredScript party1 operator licenseData
   assertMsg "License should not be expired." $ not result
 
-  submit operator $ exercise currentTimeCid UpdateCurrentTime with newCurrentTime = futureTime
-  result <- submit party1 $ checkIsExpired operator licenseData
+  submit operator $ exerciseCmd currentTimeCid UpdateCurrentTime with newCurrentTime = futureTime
+  result <- checkIsExpiredScript party1 operator licenseData
   assertMsg "License should be expired." $ result
