@@ -5,7 +5,6 @@
 
 {-# LANGUAGE ApplicativeDo #-}
 
-daml 1.2
 module DA.RefApps.KnowYourCustomer.MarketSetupScript where
 
 import DA.Time as T
