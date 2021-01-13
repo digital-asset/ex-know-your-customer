@@ -1,0 +1,33 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+
+module DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Time
+import DA.Foldable
+
+import DA.TimeService.TimeService
+
+timeUpdaterTrigger : Trigger ()
+timeUpdaterTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = updateTime
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @CurrentTime
+    ]
+  , heartbeat = Some $ seconds 5
+  }
+
+updateTime : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+updateTime party activeContracts _ _ () = do
+  let currentTimeContracts = getContracts @CurrentTime activeContracts
+
+  forA_ currentTimeContracts $ \(currentTimeCid, currentTime) ->
+    dedupExercise currentTimeCid UpdateCurrentTime with
+        newCurrentTime = addRelTime currentTime.currentTime $ days 1
