@@ -3,7 +3,7 @@
 ## Overview
 
 This application demonstrates the lifecycle of KYC (Know Your Customer) data subscriptions.
-Financial institutions can acquire licenses to subscribe to data streams, periodically receiving tailored research on their customer. 
+Financial institutions can acquire licenses to subscribe to data streams, periodically receiving tailored research on their customer.
 The research is configurable, and the institution can select the components of interest to include in the research, which is
 then verified both by a reviewer and by quality assurance.
 Until the license expires, they can observe live data streaming or report issues such as performance outage or stale data streams.
@@ -18,7 +18,6 @@ Until the license expires, they can observe live data streaming or report issues
 
 Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
-- Docker
 - Java
 - Maven
 
@@ -34,18 +33,6 @@ mvn clean package
 
 **Note:** Make sure that you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
 
-There are two options:
-
-#### Option 1: Start App with Docker
-
-1. Type:
-    ```shell
-    docker-compose up --build
-    ```
-2. Open UI with a browser at http://localhost:7500.
-
-#### Option 2: Start App in Standalone
-
 1. Start the DAML Sandbox and Navigator. Type:
     ```shell
     daml start --sandbox-option --address=localhost --sandbox-option -w
@@ -59,10 +46,6 @@ There are two options:
 
 ### Stopping the App
 
-#### Stopping Dockerized Run
-1. Stop the Docker containers or bots by typing **Ctrl+C**. (Alternatively, you can also stop it by typing `docker-compose down`.)
-
-#### Stopping Standalone Run
 1. Stop the bots by typing **Ctrl+C**.
 1. Stop the Sandbox and the Navigator by typing **Ctrl+C** in the DAML assistant.
 
@@ -70,7 +53,7 @@ There are two options:
 
 Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
-2.  Start the app in [Docker](#using-docker) or [Standalone](#standalone-mode) by following the steps in the relevant section.
+2.  Start the app following the steps [in the relevant section](#starting-the-app).
 
 ## User Guide
 
@@ -222,7 +205,7 @@ The *KYC Licenses* tab shows that the license automatically goes *live* as does 
 
 ## Additional Exploration
 
-After completing the workflow, you can explore the application to try other paths or restart with a custom CSV, etc. 
+After completing the workflow, you can explore the application to try other paths or restart with a custom CSV, etc.
 
 CONFIDENTIAL © 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 Any unauthorized use, duplication or distribution is strictly prohibited.
