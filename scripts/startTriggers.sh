@@ -127,6 +127,15 @@ daml trigger \
     --ledger-port ${SANDBOX_PORT} \
     --ledger-party KYC_Analyst &
 
+# Time management
+daml trigger \
+    --wall-clock-time \
+    --dar "${DAR_FILE}" \
+    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger \
+    --ledger-host ${SANDBOX_HOST} \
+    --ledger-port ${SANDBOX_PORT} \
+    --ledger-party Operator &
+
 sleep 2
 pids=$(jobs -p)
 echo Waiting for $pids

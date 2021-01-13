@@ -12,6 +12,7 @@ import static org.junit.Assert.assertNotEquals;
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.refapps.knowyourcustomer.Main;
 import com.digitalasset.refapps.knowyourcustomer.extensions.RelTime;
+import com.digitalasset.refapps.knowyourcustomer.triggers.TriggerTest;
 import com.digitalasset.refapps.knowyourcustomer.utils.AppParties;
 import com.digitalasset.refapps.utils.DamlScript;
 import com.digitalasset.testing.junit4.Sandbox;
@@ -31,12 +32,27 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-public class TimeServiceIT {
+public class TimeServiceIT extends TriggerTest {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/know-your-customer.dar");
 
   private static final Party OPERATOR_PARTY = new Party("Operator");
 
   private static final Duration systemPeriodTime = Duration.ofMillis(100); // must be non-zero
+
+  @Override
+  protected int getSandboxPort() {
+    return sandbox.getSandboxPort();
+  }
+
+  @Override
+  protected String getTriggerName() {
+    return "DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger";
+  }
+
+  @Override
+  protected Party getTriggerParty() {
+    return OPERATOR_PARTY;
+  }
 
   private static final Sandbox sandbox =
       Sandbox.builder()
@@ -72,7 +88,6 @@ public class TimeServiceIT {
   @After
   public void tearDown() {
     script.kill();
-    Main.terminateTimeUpdaterBot();
   }
 
   private Instant getCurrentTimeInstant() {

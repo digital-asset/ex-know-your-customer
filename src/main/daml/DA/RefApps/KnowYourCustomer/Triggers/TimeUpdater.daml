@@ -44,4 +44,4 @@ getConfig party = do
     Some (_, config) ->
       pure (config.isRunning, config.modelPeriodTime)
     None ->
-      error "No time configuration found on the ledger."
+      pure (False, seconds 1)

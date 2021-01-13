@@ -111,7 +111,6 @@ public class EndToEndIT {
   @After
   public void tearDown() {
     marketSetupAndTriggers.destroyForcibly();
-    Main.terminateTimeUpdaterBot();
   }
 
   @Test
