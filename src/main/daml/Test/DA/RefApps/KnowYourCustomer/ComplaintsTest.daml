@@ -17,7 +17,6 @@ import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
 
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
-import Test.DA.RefApps.KnowYourCustomer.Utils
 
 testConsumerCanClaimNonPerformance : Script ()
 testConsumerCanClaimNonPerformance = script do
