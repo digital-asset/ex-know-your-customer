@@ -9,7 +9,9 @@ module DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater where
 import Daml.Trigger
 import DA.Next.Map qualified as M
 import DA.Time
+import DA.Action
 import DA.Foldable
+import DA.List.Total (head)
 
 import DA.TimeService.TimeService
 
@@ -19,6 +21,7 @@ timeUpdaterTrigger = Trigger
   , updateState = \_ _ _ -> ()
   , rule = updateTime
   , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @TimeConfiguration,
       registeredTemplate @CurrentTime
     ]
   , heartbeat = Some $ seconds 5
@@ -27,7 +30,21 @@ timeUpdaterTrigger = Trigger
 updateTime : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
 updateTime party activeContracts _ _ () = do
   let currentTimeContracts = getContracts @CurrentTime activeContracts
+      ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
 
-  forA_ currentTimeContracts $ \(currentTimeCid, currentTime) ->
-    dedupExercise currentTimeCid UpdateCurrentTime with
-        newCurrentTime = addRelTime currentTime.currentTime $ days 1
+  (isRunning, modelPeriodTime) <- getConfig activeContracts party
+
+  when isRunning $
+    forA_ ourTimeContracts $ \(currentTimeCid, currentTime) ->
+      dedupExercise currentTimeCid UpdateCurrentTime with
+          newCurrentTime = addRelTime currentTime.currentTime modelPeriodTime
+
+getConfig : ACS -> Party -> TriggerA (Bool, RelTime)
+getConfig activeContracts party = do
+  -- In up-to-date versions: queryContractKey @TimeConfiguration party
+  let maybeConfig = head $ getContracts @TimeConfiguration activeContracts
+  case maybeConfig of
+    Some (_, config) ->
+      pure (config.isRunning, config.modelPeriodTime)
+    None ->
+      error "No time configuration found on the ledger."
