@@ -7,18 +7,16 @@
 module DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Time
 import DA.Action
 import DA.Foldable
-import DA.List.Total (head)
 
 import DA.TimeService.TimeService
 
 timeUpdaterTrigger : Trigger ()
 timeUpdaterTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = updateTime
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @TimeConfiguration,
@@ -27,22 +25,21 @@ timeUpdaterTrigger = Trigger
   , heartbeat = Some $ seconds 5
   }
 
-updateTime : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-updateTime party activeContracts _ _ () = do
-  let currentTimeContracts = getContracts @CurrentTime activeContracts
-      ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
+updateTime : Party -> TriggerA () ()
+updateTime party = do
+  currentTimeContracts <- query @CurrentTime
+  let ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
 
-  (isRunning, modelPeriodTime) <- getConfig activeContracts party
+  (isRunning, modelPeriodTime) <- getConfig party
 
   when isRunning $
     forA_ ourTimeContracts $ \(currentTimeCid, currentTime) ->
       dedupExercise currentTimeCid UpdateCurrentTime with
           newCurrentTime = addRelTime currentTime.currentTime modelPeriodTime
 
-getConfig : ACS -> Party -> TriggerA (Bool, RelTime)
-getConfig activeContracts party = do
-  -- In up-to-date versions: queryContractKey @TimeConfiguration party
-  let maybeConfig = head $ getContracts @TimeConfiguration activeContracts
+getConfig : Party -> TriggerA () (Bool, RelTime)
+getConfig party = do
+  maybeConfig <- queryContractKey @TimeConfiguration party
   case maybeConfig of
     Some (_, config) ->
       pure (config.isRunning, config.modelPeriodTime)
