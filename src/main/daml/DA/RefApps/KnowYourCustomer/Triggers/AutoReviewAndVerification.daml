@@ -7,7 +7,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Foldable
 import DA.List.Total
 import DA.Optional
@@ -18,8 +17,8 @@ import DA.RefApps.KnowYourCustomer.KycExtension
 
 autoReviewTrigger : Trigger ()
 autoReviewTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = autoReview
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @ReviewRequest
@@ -29,8 +28,8 @@ autoReviewTrigger = Trigger
 
 autoVerifyTrigger : Trigger ()
 autoVerifyTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = autoVerify
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @QualityAssuranceRequest,
@@ -39,10 +38,10 @@ autoVerifyTrigger = Trigger
   , heartbeat = None
   }
 
-autoReview : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-autoReview party activeContracts _ _ () = do
-  let reviewRequests = getContracts @ReviewRequest activeContracts
-      ownReviewRequests = filter (\(_, r) -> r.reviewer == party) reviewRequests
+autoReview : Party -> TriggerA () ()
+autoReview party = do
+  reviewRequests <- query @ReviewRequest
+  let ownReviewRequests = filter (\(_, r) -> r.reviewer == party) reviewRequests
 
   forA_ ownReviewRequests $ \(rCid, _) ->
     dedupExercise rCid ApproveReview
@@ -50,11 +49,11 @@ autoReview party activeContracts _ _ () = do
 everyNthDay : Int
 everyNthDay = 3
 
-autoVerify : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-autoVerify party activeContracts _ _ () = do
-  let currentTimeContracts = getContracts @CurrentTime activeContracts
-      qaRequests = getContracts @QualityAssuranceRequest activeContracts
-      ownQaRequests = filter (\(_, r) -> r.qualityAssurance == party) qaRequests
+autoVerify : Party -> TriggerA () ()
+autoVerify party = do
+  currentTimeContracts <- query @CurrentTime
+  qaRequests <- query @QualityAssuranceRequest
+  let ownQaRequests = filter (\(_, r) -> r.qualityAssurance == party) qaRequests
 
   whenSome (head currentTimeContracts) $ \(_, currentTime) ->
     forA_ ownQaRequests $ \(qaCid, _) -> do

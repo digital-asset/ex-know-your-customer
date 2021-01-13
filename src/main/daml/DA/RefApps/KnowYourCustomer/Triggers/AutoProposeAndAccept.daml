@@ -7,7 +7,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Foldable
 
 import DA.RefApps.KnowYourCustomer.Roles
@@ -15,8 +14,8 @@ import DA.RefApps.KnowYourCustomer.Types
 
 autoProposeTrigger : Trigger ()
 autoProposeTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = autoPropose
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @DataStreamRequest
@@ -26,8 +25,8 @@ autoProposeTrigger = Trigger
 
 autoAcceptTrigger : Trigger ()
 autoAcceptTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = autoAccept
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @DataLicenseProposal
@@ -35,18 +34,18 @@ autoAcceptTrigger = Trigger
   , heartbeat = None
   }
 
-autoPropose : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-autoPropose party activeContracts _ _ () = do
-  let dataStreamRequests = getContracts @DataStreamRequest activeContracts
-      ownDataStreamRequests = filter (\(_, dsr) -> dsr.publisher.party == party) dataStreamRequests
+autoPropose : Party -> TriggerA () ()
+autoPropose party = do
+  dataStreamRequests <- query @DataStreamRequest
+  let ownDataStreamRequests = filter (\(_, dsr) -> dsr.publisher.party == party) dataStreamRequests
 
   forA_ ownDataStreamRequests $ \(dsrCid, _) ->
     dedupExercise dsrCid DataStreamRequest_Propose with price = SubscriptionFee 100.0
 
-autoAccept : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-autoAccept party activeContracts _ _ () = do
-  let dataLicenseProposals = getContracts @DataLicenseProposal activeContracts
-      ownDataLicenseProposals = filter (\(_, dlp) -> dlp.consumer.party == party) dataLicenseProposals
+autoAccept : Party -> TriggerA () ()
+autoAccept party = do
+  dataLicenseProposals <- query @DataLicenseProposal
+  let ownDataLicenseProposals = filter (\(_, dlp) -> dlp.consumer.party == party) dataLicenseProposals
 
   forA_ ownDataLicenseProposals $ \(dlpCid, _) ->
     dedupExercise dlpCid DataLicenseProposal_Accept

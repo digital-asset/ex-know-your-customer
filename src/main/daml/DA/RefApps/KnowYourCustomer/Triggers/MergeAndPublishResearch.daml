@@ -7,7 +7,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Foldable
 import DA.Optional
 import DA.List.Total
@@ -21,8 +20,8 @@ import DA.RefApps.KnowYourCustomer.Triggers.Logging
 
 mergeAndPublishResearchDataTrigger : Trigger ()
 mergeAndPublishResearchDataTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = mergeAndPublishResearchDataRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @Publication
@@ -34,19 +33,20 @@ mergeAndPublishResearchDataTrigger = Trigger
   , heartbeat = None
   }
 
-mergeAndPublishResearchDataRule : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-mergeAndPublishResearchDataRule party activeContracts _ _ () = do
+mergeAndPublishResearchDataRule : Party -> TriggerA () ()
+mergeAndPublishResearchDataRule party = do
   -- Get publications where 'party' gets data, i.e. consumer
-  let publications = getContracts @Publication activeContracts
-      ownPublications = filter (\(_, p) -> p.consumer.party == party) publications
+  publications <- query @Publication
+  dataStreams <- query @DataStream
+  researchProcess <- query @ResearchProcess
+  researchResults <- query @ResearchResult
+  emptyDataStreams <- query @EmptyDataStream
+
+  let ownPublications = filter (\(_, p) -> p.consumer.party == party) publications
   -- Get data streams where 'party' provides data to, i.e. publisher
-      dataStreams = getContracts @DataStream activeContracts
       ownDataStreams = filter (\(_, s) -> s.publisher.party == party) dataStreams
   -- Get empty streams to start them
-      emptyDataStreams = getContracts @EmptyDataStream activeContracts
       ownEmptyDataStreams = filter (\(_, s) -> s.publisher.party == party) emptyDataStreams
-      researchProcess = getContracts @ResearchProcess activeContracts
-      researchResults = getContracts @ResearchResult activeContracts
 
   forA_
     researchProcess
