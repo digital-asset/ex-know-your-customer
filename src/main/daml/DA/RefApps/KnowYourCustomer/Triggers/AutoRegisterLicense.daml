@@ -7,7 +7,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Foldable
 import DA.Action
 
@@ -17,8 +16,8 @@ import DA.RefApps.KnowYourCustomer.Roles
 
 automaticLicenseRegistrarTrigger : Trigger ()
 automaticLicenseRegistrarTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = autoLicenseRegistrar
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @DataLicense
@@ -27,11 +26,11 @@ automaticLicenseRegistrarTrigger = Trigger
   , heartbeat = None
   }
 
-autoLicenseRegistrar : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-autoLicenseRegistrar party activeContracts _ _ () = do
-  let licenses = getContracts @DataLicense activeContracts
-      licensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == party) licenses
-      publisherRoles = getContracts @PublisherRole activeContracts
+autoLicenseRegistrar : Party -> TriggerA () ()
+autoLicenseRegistrar party = do
+  licenses <- query @DataLicense
+  publisherRoles <- query @PublisherRole
+  let licensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == party) licenses
       ourPublisherRoles = filter (\(_, r) -> r.publisher.party == party) publisherRoles
 
   forA_ licensesToRegister $ \(lCid, l) -> do

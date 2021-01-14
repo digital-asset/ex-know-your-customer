@@ -7,7 +7,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
 import DA.Foldable
 import DA.Time
 import DA.Action
@@ -33,8 +32,8 @@ autoStartResearchProcessTrigger =
 
 createAutoStartResearchProcessTrigger : Party -> Party -> Trigger ()
 createAutoStartResearchProcessTrigger reviewer qualityAssurance = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = startResearchProcess reviewer qualityAssurance
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @EmptyDataStream
@@ -45,11 +44,11 @@ createAutoStartResearchProcessTrigger reviewer qualityAssurance = Trigger
   , heartbeat = None
   }
 
-startResearchProcess : Party -> Party -> Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
-startResearchProcess reviewer qualityAssurance actualParty activeContracts _ _ () = do
-  let licenses = getContracts @DataLicense activeContracts
-      researchLicensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == actualParty) licenses
-      publisherRoles = getContracts @PublisherRole activeContracts
+startResearchProcess : Party -> Party -> Party -> TriggerA () ()
+startResearchProcess reviewer qualityAssurance actualParty = do
+  licenses <- query @DataLicense
+  publisherRoles <- query @PublisherRole
+  let researchLicensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == actualParty) licenses
       ownPublisherRoles = filter (\(_, r) -> r.publisher.party == actualParty) publisherRoles
 
   case ownPublisherRoles of

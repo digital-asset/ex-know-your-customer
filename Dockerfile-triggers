@@ -1,0 +1,26 @@
+#
+# Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+#
+
+ARG sdk_vsn=1.8.0
+
+FROM digitalasset/daml-sdk:${sdk_vsn}
+
+USER root
+RUN apt-get update || apt-get update
+RUN apt-get -y install netcat-openbsd
+USER daml
+
+WORKDIR /home/daml
+
+COPY target/know-your-customer.dar /home/daml/
+COPY --chown=daml scripts/startTriggers.sh /home/daml/
+COPY --chown=daml scripts/waitForSandbox.sh /home/daml/
+
+USER root
+RUN chown daml know-your-customer.dar
+RUN chmod +rx /home/daml/startTriggers.sh
+USER daml
+
+CMD ~/waitForSandbox.sh ${SANDBOX_HOST} ${SANDBOX_PORT} && \
+    ~/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"
