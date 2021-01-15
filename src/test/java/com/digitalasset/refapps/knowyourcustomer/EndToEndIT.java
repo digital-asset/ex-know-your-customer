@@ -4,13 +4,11 @@
  */
 package com.digitalasset.refapps.knowyourcustomer;
 
-import static com.digitalasset.refapps.knowyourcustomer.utils.AppParties.ALL_PARTIES;
 import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.knowyourcustomer.utils.AppParties;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
@@ -63,7 +61,6 @@ public class EndToEndIT {
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
           .timeout(Duration.ofSeconds(90))
-          .setupAppCallback(Main.runBots(new AppParties(ALL_PARTIES), systemPeriodTime))
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

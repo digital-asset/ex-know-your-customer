@@ -40,15 +40,14 @@ There are two options:
     daml start --sandbox-option --address=localhost --sandbox-option -w
     ```
     The navigator will automatically open in new browser tab at http://localhost:7500.
-2. Start the automation logic by starting bots and the triggers. Type:
+2. Start the automation logic (triggers). Type:
     ```shell
     scripts/startTriggers.sh localhost 6865 target/know-your-customer.dar
-    java -jar target/know-your-customer-0.0.1-SNAPSHOT.jar
     ```
 
 ### Stopping the App
 
-1. Stop the bots by typing **Ctrl+C**.
+1. Stop the triggers by typing **Ctrl+C**.
 1. Stop the Sandbox and the Navigator by typing **Ctrl+C** in the DAML assistant.
 
 ### Resetting the Prototype
@@ -111,7 +110,6 @@ You will also need to continue/stop/set time as the Operator to follow the demo 
 
 The participants listed above in Roles and Responsibilities are added automatically at market setup along with other required reference data.
 The publisher-consumer relationships are also set up to ease license issuance.
-The raw data providers upload CSV content to publish data observations.
 
 ### Workflow 1: Observation of Preloaded Data Streams
 
