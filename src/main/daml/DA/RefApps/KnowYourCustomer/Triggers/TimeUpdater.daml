@@ -10,37 +10,50 @@ import Daml.Trigger
 import DA.Time
 import DA.Action
 import DA.Foldable
+import DA.Optional
+import DA.RefApps.KnowYourCustomer.Utils
 
 import DA.TimeService.TimeService
 
-timeUpdaterTrigger : Trigger ()
+type TimeUpdaterTrigger = Trigger (Optional Time)
+type TimeUpdaterTriggerA a = TriggerA (Optional Time) a
+
+updatePeriodTime : RelTime
+updatePeriodTime = seconds 5
+
+timeUpdaterTrigger : TimeUpdaterTrigger
 timeUpdaterTrigger = Trigger
-  { initialize = pure ()
+  { initialize = pure None
   , updateState = \_ -> pure ()
   , rule = updateTime
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @TimeConfiguration,
       registeredTemplate @CurrentTime
     ]
-  , heartbeat = Some $ seconds 5
+  , heartbeat = Some updatePeriodTime
   }
 
-updateTime : Party -> TriggerA () ()
+updateTime : Party -> TimeUpdaterTriggerA ()
 updateTime party = do
   currentTimeContracts <- query @CurrentTime
   let ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
 
   a <- fmap (<>) (query @CurrentTime) <*> query @CurrentTime
 
+  lastUpdatedMachineTime <- get
+  currentMachineTime <- getTime
   (isRunning, modelPeriodTime) <- getConfig party
 
-  when isRunning $
+  when (isRunning && diffIsAtLeastUpdatePeriodBetween lastUpdatedMachineTime currentMachineTime) $
     forA_ ourTimeContracts $ \(currentTimeCid, currentTime) -> do
-      debug ("Updating time: " <> (show currentTime.currentTime) <> " " <> (show $ addRelTime currentTime.currentTime modelPeriodTime))
+      debug $ "Updating time: "
+                <> (show currentTime.currentTime) <> " -> "
+                <> show (addRelTime currentTime.currentTime modelPeriodTime)
       dedupExercise currentTimeCid UpdateCurrentTime with
           newCurrentTime = addRelTime currentTime.currentTime modelPeriodTime
+      put $ Some currentMachineTime
 
-getConfig : Party -> TriggerA () (Bool, RelTime)
+getConfig : Party -> TimeUpdaterTriggerA (Bool, RelTime)
 getConfig party = do
   maybeConfig <- queryContractKey @TimeConfiguration party
   case maybeConfig of
@@ -48,3 +61,9 @@ getConfig party = do
       pure (config.isRunning, config.modelPeriodTime)
     None ->
       pure (False, seconds 1)
+
+diffIsAtLeastUpdatePeriodBetween : Optional Time -> Time -> Bool
+diffIsAtLeastUpdatePeriodBetween maybeTime1 time2 =
+   time2 `subTime` time1 >= updatePeriodTime
+  where
+    time1 = fromOptional epochUTC maybeTime1
