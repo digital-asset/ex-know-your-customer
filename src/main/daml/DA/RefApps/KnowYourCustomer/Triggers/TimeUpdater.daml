@@ -30,10 +30,13 @@ updateTime party = do
   currentTimeContracts <- query @CurrentTime
   let ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
 
+  a <- fmap (<>) (query @CurrentTime) <*> query @CurrentTime
+
   (isRunning, modelPeriodTime) <- getConfig party
 
   when isRunning $
-    forA_ ourTimeContracts $ \(currentTimeCid, currentTime) ->
+    forA_ ourTimeContracts $ \(currentTimeCid, currentTime) -> do
+      debug ("Updating time: " <> (show currentTime.currentTime) <> " " <> (show $ addRelTime currentTime.currentTime modelPeriodTime))
       dedupExercise currentTimeCid UpdateCurrentTime with
           newCurrentTime = addRelTime currentTime.currentTime modelPeriodTime
 
