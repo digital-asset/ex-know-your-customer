@@ -136,30 +136,30 @@ daml trigger \
     --ledger-port ${SANDBOX_PORT} \
     --ledger-party Operator &
 
-# # Publishing
-# daml trigger \
-#     --wall-clock-time \
-#     --dar "${DAR_FILE}" \
-#     --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger \
-#     --ledger-host ${SANDBOX_HOST} \
-#     --ledger-port ${SANDBOX_PORT} \
-#     --ledger-party CIP_Provider &
+# Publishing
+daml trigger \
+    --wall-clock-time \
+    --dar "${DAR_FILE}" \
+    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger \
+    --ledger-host ${SANDBOX_HOST} \
+    --ledger-port ${SANDBOX_PORT} \
+    --ledger-party CIP_Provider &
 
-# daml trigger \
-#     --wall-clock-time \
-#     --dar "${DAR_FILE}" \
-#     --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger \
-#     --ledger-host ${SANDBOX_HOST} \
-#     --ledger-port ${SANDBOX_PORT} \
-#     --ledger-party CDD_Provider &
+daml trigger \
+    --wall-clock-time \
+    --dar "${DAR_FILE}" \
+    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger \
+    --ledger-host ${SANDBOX_HOST} \
+    --ledger-port ${SANDBOX_PORT} \
+    --ledger-party CDD_Provider &
 
-# daml trigger \
-#     --wall-clock-time \
-#     --dar "${DAR_FILE}" \
-#     --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger \
-#     --ledger-host ${SANDBOX_HOST} \
-#     --ledger-port ${SANDBOX_PORT} \
-#     --ledger-party ScreeningProvider &
+daml trigger \
+    --wall-clock-time \
+    --dar "${DAR_FILE}" \
+    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger \
+    --ledger-host ${SANDBOX_HOST} \
+    --ledger-port ${SANDBOX_PORT} \
+    --ledger-party ScreeningProvider &
 
 sleep 2
 pids=$(jobs -p)

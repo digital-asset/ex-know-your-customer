@@ -26,10 +26,10 @@ cipTrigger : PublisherTrigger
 cipTrigger = updateStreamTrigger getCIP
 
 cddTrigger : PublisherTrigger
-cddTrigger = updateStreamTrigger getCIP
+cddTrigger = updateStreamTrigger getCDD
 
 screeningTrigger : PublisherTrigger
-screeningTrigger = updateStreamTrigger getCIP
+screeningTrigger = updateStreamTrigger getScreening
 
 updateStreamTrigger : ObservationValueProvider -> PublisherTrigger
 updateStreamTrigger getObservationValue = Trigger
