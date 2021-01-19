@@ -41,8 +41,6 @@ updateTime party = do
   currentTimeContracts <- query @CurrentTime
   let ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
 
-  a <- fmap (<>) (query @CurrentTime) <*> query @CurrentTime
-
   heartbeatReceived <- get
   (isRunning, modelPeriodTime) <- getConfig party
 
