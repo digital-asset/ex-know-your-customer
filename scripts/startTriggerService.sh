@@ -41,7 +41,6 @@ DAR_FILE="${3}"
 
 PACKAGE_ID=$(daml damlc inspect ${3} | grep package | cut -d" " -f2)
 
-# Market setup DAML script
 daml script \
     --wall-clock-time \
     --dar "${DAR_FILE}" \
