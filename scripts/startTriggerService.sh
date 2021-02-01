@@ -23,9 +23,10 @@ waitForTriggerService() {
 }
 
 startTrigger() {
+    PAYLOAD=$(printf '{ "triggerName": "%s", "party": "%s", "applicationId": "my-app-id" }' "${1}" "${2}")
     curl -X POST -H "Content-Type: application/json" \
-        -d "{ \"triggerName\": \"${1}\", \"party\": \"${2}\", \"applicationId\": \"my-app-id\" }" \
-        ${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/v1/triggers
+        -d "${PAYLOAD}" \
+        "${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/v1/triggers"
 }
 
 getPackageId() {
