@@ -1,0 +1,108 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+
+module DA.RefApps.KnowYourCustomer.Triggers.Publisher where
+
+import Daml.Trigger
+import DA.Time
+import DA.Action
+import DA.Foldable
+import DA.List.Total
+
+import DA.TimeService.TimeService
+import DA.RefApps.KnowYourCustomer.DataStream
+import DA.RefApps.KnowYourCustomer.Types
+import DA.RefApps.KnowYourCustomer.Utils
+
+type ObservationValueProvider = ObservationReference -> Time -> ObservationValue
+type PublisherTriggerA a = TriggerA (Optional Time) a
+type PublisherTrigger = Trigger (Optional Time)
+type CidWithData a = (ContractId a, a)
+
+cipTrigger : PublisherTrigger
+cipTrigger = updateStreamTrigger getCIP
+
+cddTrigger : PublisherTrigger
+cddTrigger = updateStreamTrigger getCDD
+
+screeningTrigger : PublisherTrigger
+screeningTrigger = updateStreamTrigger getScreening
+
+updateStreamTrigger : ObservationValueProvider -> PublisherTrigger
+updateStreamTrigger getObservationValue = Trigger
+  { initialize = pure None
+  , updateState = \_ -> pure ()
+  , rule = updateStream getObservationValue
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @EmptyDataStream,
+      registeredTemplate @DataStream,
+      registeredTemplate @CurrentTime
+    ]
+  , heartbeat = Some $ seconds 5
+  }
+
+getCIP : ObservationValueProvider
+getCIP reference time =
+  CIP $
+    CipData with
+      legalName = reference.customerName
+      ssn = "-"
+      tin = "580-12-003" <> show (getSeconds time)
+      naic = "52/Finance and Insurance"
+      address = "Westminster London SW1A 37AA"
+      country = "UK"
+
+getCDD : ObservationValueProvider
+getCDD reference time =
+  CDD $
+    CddData with
+      naic = "52/Finance and Insurance"
+      countryOfLicense = "UK"
+      legalEntityType = "Ltd"
+      publiclyTraded = True
+      revenue = "USD " <> show (timeToMicroUTC time)
+      supplierType = "Type1"
+      relationship = "borrower"
+
+getScreening : ObservationValueProvider
+getScreening reference time =
+  Screening $
+    ScreeningData with
+      sanctions = "N/A"
+      ofac = "not listed" <> show (getSeconds time)
+      negativeMedia = "0"
+      pep = "No"
+
+updateStream : ObservationValueProvider -> Party -> PublisherTriggerA ()
+updateStream getObservationValue party = do
+  maybeCurrentTimeContract <- getCurrentTimeIfAvailable
+  emptyDataStreams <- query @EmptyDataStream
+  dataStreams <- query @DataStream
+  lastTimeTriggerPublished <- get
+  forA_ maybeCurrentTimeContract $ \currentTime -> do
+    when (lastTimeTriggerPublished /= Some currentTime) $ do
+      debug $ "Publishing.. (" <> show party <> ")"
+      forA_ emptyDataStreams $ startDataStream getObservationValue currentTime
+      forA_ dataStreams $ updateDataStream getObservationValue currentTime
+    put $ Some currentTime
+
+getCurrentTimeIfAvailable : PublisherTriggerA (Optional Time)
+getCurrentTimeIfAvailable = do
+  maybeCidAndCurrentTime <- head <$> query @CurrentTime
+  pure $ (currentTime . snd) <$> maybeCidAndCurrentTime
+
+startDataStream : ObservationValueProvider -> Time -> CidWithData EmptyDataStream -> PublisherTriggerA ()
+startDataStream getObservationValue currentTime (cid, dataStream) =
+  dedupExercise cid $
+    StartDataStream $
+      Observation dataStream.reference currentTime $
+        getObservationValue dataStream.reference currentTime
+
+updateDataStream : ObservationValueProvider -> Time -> CidWithData DataStream -> PublisherTriggerA ()
+updateDataStream getObservationValue currentTime (cid, dataStream) =
+  dedupExercise cid $
+    UpdateObservation currentTime $
+      getObservationValue dataStream.observation.label currentTime

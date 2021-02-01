@@ -65,20 +65,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib</classpathPrefix>
-                            <mainClass>com.digitalasset.refapps.knowyourcustomer.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.0.0-M3</version>
                 <executions>
@@ -135,7 +121,12 @@
                         <exclude>**/README</exclude>
                         <exclude>src/license/*</exclude>
                         <exclude>**/*.txt</exclude>
-                        <exclude>**/.daml/package-database/**/*.*</exclude>
+                        <exclude>*.log</exclude>
+                        <exclude>data/*.csv</exclude>
+                        <exclude>ui-backend.conf</exclude>
+                        <exclude>**/.daml/**</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>img/**</exclude>
                     </excludes>
                     <mapping>
                         <daml>DOUBLEDASHES_STYLE</daml>

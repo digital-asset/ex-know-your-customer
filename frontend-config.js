@@ -535,9 +535,9 @@ function showKycObservationValue(observation) {
     } else if (observation.value.Screening) {
         return `${observation.value.Screening.ofac}`;
     } else if (observation.value.Research) {
-        const cip = observation.value.Research.researchData.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCip.Data.tin;
-        const cdd = observation.value.Research.researchData.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCdd.Data.revenue;
-        const screening = observation.value.Research.researchData.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchScreening.Data.ofac;
+        const cip = observation.value.Research.researchData.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCip.Data.value.tin;
+        const cdd = observation.value.Research.researchData.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCdd.Data.value.revenue;
+        const screening = observation.value.Research.researchData.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchScreening.Data.value.ofac;
         return `${cip}, ${cdd}, ${screening}`;
     } else {
         return "N/A";

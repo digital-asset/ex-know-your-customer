@@ -1,0 +1,63 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+
+module DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater where
+
+import Daml.Trigger
+import DA.Time
+import DA.Action
+import DA.Foldable
+
+import DA.TimeService.TimeService
+
+type HeartbeatReceived = Bool
+type TimeUpdaterTrigger = Trigger HeartbeatReceived
+type TimeUpdaterTriggerA a = TriggerA HeartbeatReceived a
+
+updatePeriodTime : RelTime
+updatePeriodTime = seconds 5
+
+timeUpdaterTrigger : TimeUpdaterTrigger
+timeUpdaterTrigger = Trigger
+  { initialize = pure False
+  , updateState = listenHeartbeat
+  , rule = updateTime
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @TimeConfiguration,
+      registeredTemplate @CurrentTime
+    ]
+  , heartbeat = Some updatePeriodTime
+  }
+
+listenHeartbeat : Message -> TriggerUpdateA HeartbeatReceived ()
+listenHeartbeat MHeartbeat = put True
+listenHeartbeat _ = pure ()
+
+updateTime : Party -> TimeUpdaterTriggerA ()
+updateTime party = do
+  currentTimeContracts <- query @CurrentTime
+  let ourTimeContracts = filter (\(_, timeContract) -> timeContract.operator == party) currentTimeContracts
+
+  heartbeatReceived <- get
+  (isRunning, modelPeriodTime) <- getConfig party
+
+  when (isRunning && heartbeatReceived) $
+    forA_ ourTimeContracts $ \(currentTimeCid, currentTime) -> do
+      debug $ "Updating time: "
+                <> (show currentTime.currentTime) <> " -> "
+                <> show (addRelTime currentTime.currentTime modelPeriodTime)
+      dedupExercise currentTimeCid UpdateCurrentTime with
+          newCurrentTime = addRelTime currentTime.currentTime modelPeriodTime
+      put False
+
+getConfig : Party -> TimeUpdaterTriggerA (Bool, RelTime)
+getConfig party = do
+  maybeConfig <- queryContractKey @TimeConfiguration party
+  case maybeConfig of
+    Some (_, config) ->
+      pure (config.isRunning, config.modelPeriodTime)
+    None ->
+      pure (False, seconds 1)

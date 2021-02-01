@@ -4,15 +4,12 @@
  */
 package com.digitalasset.refapps.knowyourcustomer.timeservice;
 
-import static com.digitalasset.refapps.knowyourcustomer.utils.AppParties.ALL_PARTIES;
 import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.knowyourcustomer.Main;
-import com.digitalasset.refapps.knowyourcustomer.extensions.RelTime;
-import com.digitalasset.refapps.knowyourcustomer.utils.AppParties;
+import com.digitalasset.refapps.knowyourcustomer.triggers.TriggerTest;
 import com.digitalasset.refapps.utils.DamlScript;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
@@ -31,19 +28,38 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-public class TimeServiceIT {
+public class TimeServiceIT extends TriggerTest {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/know-your-customer.dar");
 
   private static final Party OPERATOR_PARTY = new Party("Operator");
 
   private static final Duration systemPeriodTime = Duration.ofMillis(100); // must be non-zero
 
+  public static da.time.types.RelTime fromDuration(Duration modelPeriodTime) {
+    long microseconds = modelPeriodTime.toMillis() * 1000;
+    return new da.time.types.RelTime(microseconds);
+  }
+
+  @Override
+  protected int getSandboxPort() {
+    return sandbox.getSandboxPort();
+  }
+
+  @Override
+  protected String getTriggerName() {
+    return "DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger";
+  }
+
+  @Override
+  protected Party getTriggerParty() {
+    return OPERATOR_PARTY;
+  }
+
   private static final Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_DAR_PATH)
           .parties(OPERATOR_PARTY.getValue())
           .useWallclockTime()
-          .setupAppCallback(Main.runBots(new AppParties(ALL_PARTIES), systemPeriodTime))
           .build();
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
@@ -72,7 +88,6 @@ public class TimeServiceIT {
   @After
   public void tearDown() {
     script.kill();
-    Main.terminateTimeUpdaterBot();
   }
 
   private Instant getCurrentTimeInstant() {
@@ -91,8 +106,7 @@ public class TimeServiceIT {
       throws InvalidProtocolBufferException, InterruptedException {
     ledgerAdapter.exerciseChoice(
         OPERATOR_PARTY,
-        timeManager.contractId.exerciseSetModelPeriodTime(
-            RelTime.fromDuration(newModelPeriodTime)));
+        timeManager.contractId.exerciseSetModelPeriodTime(fromDuration(newModelPeriodTime)));
   }
 
   private void verifyModelPeriodTime(Duration newModelPeriodTime) throws InterruptedException {

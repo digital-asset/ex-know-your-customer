@@ -5,8 +5,19 @@
 
 module DA.RefApps.KnowYourCustomer.Utils where
 
+import DA.Time
+import DA.Date
 import DA.Optional
 
 -- | Same as `getParty` in scenarios but useful in DAML Scripts.
 getScriptParty: Text -> Party
 getScriptParty = fromSome . partyFromText
+
+epochUTC : Time
+epochUTC = datetime 1970 Jan 1 0 0 0
+
+timeToMicroUTC : Time -> Int
+timeToMicroUTC t = convertRelTimeToMicroseconds $ t `subTime` epochUTC
+
+getSeconds : Time -> Int
+getSeconds t = timeToMicroUTC t % 60
