@@ -28,9 +28,13 @@ startTrigger() {
         ${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/v1/triggers
 }
 
+getPackageId() {
+    daml damlc inspect-dar --json ${DAR_FILE} | jq -j ".main_package_id"
+}
+
 trap "cleanup" INT QUIT TERM
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
     exit 1
 fi
@@ -39,7 +43,7 @@ SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
 DAR_FILE="${3}"
 
-PACKAGE_ID=$(daml damlc inspect ${3} | grep package | cut -d" " -f2)
+PACKAGE_ID=$(getPackageId)
 
 daml script \
     --wall-clock-time \
