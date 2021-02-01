@@ -16,7 +16,7 @@ cleanup() {
 }
 
 waitForTriggerService() {
-    until curl ${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/livez
+    until curl "$TRIGGER_SERVICE_HOST:$TRIGGER_SERVICE_PORT/livez"
     do
         sleep 1
     done
@@ -25,12 +25,12 @@ waitForTriggerService() {
 startTrigger() {
     PAYLOAD=$(printf '{ "triggerName": "%s", "party": "%s", "applicationId": "my-app-id" }' "${1}" "${2}")
     curl -X POST -H "Content-Type: application/json" \
-        -d "${PAYLOAD}" \
-        "${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/v1/triggers"
+        -d "$PAYLOAD" \
+        "$TRIGGER_SERVICE_HOST:$TRIGGER_SERVICE_PORT/v1/triggers"
 }
 
 getPackageId() {
-    daml damlc inspect-dar --json ${DAR_FILE} | jq -j ".main_package_id"
+    daml damlc inspect-dar --json "$DAR_FILE" | jq -j ".main_package_id"
 }
 
 trap "cleanup" INT QUIT TERM
@@ -48,14 +48,14 @@ PACKAGE_ID=$(getPackageId)
 
 daml script \
     --wall-clock-time \
-    --dar "${DAR_FILE}" \
+    --dar "$DAR_FILE" \
     --script-name DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT}
+    --ledger-host "$SANDBOX_HOST" \
+    --ledger-port "$SANDBOX_PORT"
 echo "DAML script executed"
 
 daml trigger-service \
-    --dar "${DAR_FILE}" \
+    --dar "$DAR_FILE" \
     --ledger-host localhost \
     --ledger-port 6865 &
 
@@ -64,69 +64,69 @@ echo "Trigger service running."
 
 # Automatically propose license prices and automatically accept them
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger" \
     KYC_Analyst
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     CIP_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     CDD_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     ScreeningProvider
 
 # Automatically register new licenses
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     CIP_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     CDD_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     ScreeningProvider
 
 # Automatically start research and register their licenses
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger" \
     KYC_Analyst
 
 # Automatic review and quality assurance of researchs
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger" \
     KYC_Reviewer
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger" \
     KYC_QA
 
 # Automatically merge different screenings into a research and publish the research
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger" \
     KYC_Analyst
 
 # Time management
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger" \
     Operator
 
 # Publishing
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger" \
     CIP_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger" \
     CDD_Provider
 
 startTrigger \
-    ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger \
+    "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger" \
     ScreeningProvider
 
 sleep 2
