@@ -18,7 +18,7 @@ cleanup() {
 waitForTriggerService() {
     until curl ${TRIGGER_SERVICE_HOST}:${TRIGGER_SERVICE_PORT}/livez
     do
-        sleep 0.1
+        sleep 1
     done
 }
 
