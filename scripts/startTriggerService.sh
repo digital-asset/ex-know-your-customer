@@ -50,7 +50,7 @@ daml script \
 echo "DAML script executed"
 
 daml trigger-service \
-    --dar target/know-your-customer.dar \
+    --dar "${DAR_FILE}" \
     --ledger-host localhost \
     --ledger-port 6865 &
 
