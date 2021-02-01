@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-export _JAVA_OPTIONS="-Xms8m -Xmx128m"
-
 set -e
 
 TRIGGER_SERVICE_HOST="127.0.0.1"
@@ -39,7 +37,7 @@ fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/know-your-customer.dar}"
+DAR_FILE="${3}"
 
 PACKAGE_ID=$(daml damlc inspect ${3} | grep package | cut -d" " -f2)
 
@@ -63,69 +61,69 @@ echo "Trigger service running."
 # Automatically propose license prices and automatically accept them
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger \
-    KYC_Analyst &
+    KYC_Analyst
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    CIP_Provider &
+    CIP_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    CDD_Provider &
+    CDD_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    ScreeningProvider &
+    ScreeningProvider
 
 # Automatically register new licenses
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    CIP_Provider &
+    CIP_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    CDD_Provider &
+    CDD_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    ScreeningProvider &
+    ScreeningProvider
 
 # Automatically start research and register their licenses
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger \
-    KYC_Analyst &
+    KYC_Analyst
 
 # Automatic review and quality assurance of researchs
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger \
-    KYC_Reviewer &
+    KYC_Reviewer
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger \
-    KYC_QA &
+    KYC_QA
 
 # Automatically merge different screenings into a research and publish the research
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger \
-    KYC_Analyst &
+    KYC_Analyst
 
 # Time management
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger \
-    Operator &
+    Operator
 
 # Publishing
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger \
-    CIP_Provider &
+    CIP_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger \
-    CDD_Provider &
+    CDD_Provider
 
 startTrigger \
     ${PACKAGE_ID}:DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger \
-    ScreeningProvider &
+    ScreeningProvider
 
 sleep 2
 pids=$(jobs -p)
