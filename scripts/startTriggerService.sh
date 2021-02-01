@@ -36,7 +36,7 @@ getPackageId() {
 trap "cleanup" INT QUIT TERM
 
 if [ $# -lt 3 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
+    echo "${0} SANDBOX_HOST SANDBOX_PORT DAR_FILE"
     exit 1
 fi
 
