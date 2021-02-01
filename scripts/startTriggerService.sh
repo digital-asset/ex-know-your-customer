@@ -22,7 +22,7 @@ waitForTriggerService() {
     done
 }
 
-startTrigger() {
+startTriggerFromThisPackage() {
     PAYLOAD=$(printf '{ "triggerName": "%s", "party": "%s", "applicationId": "my-app-id" }' "${1}" "${2}")
     curl -X POST -H "Content-Type: application/json" \
         -d "$PAYLOAD" \
@@ -63,69 +63,69 @@ waitForTriggerService
 echo "Trigger service running."
 
 # Automatically propose license prices and automatically accept them
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger" \
     KYC_Analyst
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     CIP_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     CDD_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
     ScreeningProvider
 
 # Automatically register new licenses
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     CIP_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     CDD_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
     ScreeningProvider
 
 # Automatically start research and register their licenses
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger" \
     KYC_Analyst
 
 # Automatic review and quality assurance of researchs
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger" \
     KYC_Reviewer
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger" \
     KYC_QA
 
 # Automatically merge different screenings into a research and publish the research
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger" \
     KYC_Analyst
 
 # Time management
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger" \
     Operator
 
 # Publishing
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger" \
     CIP_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger" \
     CDD_Provider
 
-startTrigger \
+startTriggerFromThisPackage \
     "$PACKAGE_ID:DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger" \
     ScreeningProvider
 
