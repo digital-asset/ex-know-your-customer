@@ -21,7 +21,7 @@ public abstract class TriggerTest {
 
   protected static Sandbox buildSandbox(String module) {
     return Sandbox.builder()
-        .dar(Paths.get("target/know-your-customer.dar"))
+        .dar(Paths.get("target/know-your-customer-triggers.dar"))
         .parties(OPERATOR, CIP_PROVIDER, BANK_1, KYC_ANALYST, KYC_REVIEWER, KYC_QUALITYASSURANCE)
         .module(module)
         .startScript("setup")
