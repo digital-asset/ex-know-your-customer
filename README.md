@@ -42,7 +42,7 @@ These commands start the application with wall clock time. Note that Navigator's
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic (triggers). Type:
     ```shell
-    scripts/startTriggers.sh localhost 6865 target/know-your-customer.dar
+    scripts/startTriggers.sh localhost 6865 target/know-your-customer.dar target/know-your-customer-triggers.dar
     ```
 
 ### Stopping the App
