@@ -3,11 +3,11 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoVerificationTestSetup where
+module DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoVerificationTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Utils
 import DA.RefApps.KnowYourCustomer.KycExtension
-import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoReviewTestSetup
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoReviewTestSetup
 
 import Daml.Script
 

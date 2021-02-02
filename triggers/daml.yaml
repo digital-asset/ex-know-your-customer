@@ -1,10 +1,10 @@
 #
-# Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
 sdk-version: 1.8.0
-name: know-your-customer
+name: know-your-customer-triggers
 source: src/main/daml
 parties:
   - CIP_Provider
@@ -22,6 +22,8 @@ dependencies:
   - daml-prim
   - daml-stdlib
   - daml-script
+  - daml-trigger
+  - ../target/know-your-customer.dar
 build-options:
   - '--ghc-option'
   - '-Werror'
