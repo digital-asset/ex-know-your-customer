@@ -29,7 +29,8 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 public class TimeServiceIT extends TriggerTest {
-  private static final Path RELATIVE_DAR_PATH = Paths.get("./target/know-your-customer-triggers.dar");
+  private static final Path RELATIVE_DAR_PATH =
+      Paths.get("./target/know-your-customer-triggers.dar");
 
   private static final Party OPERATOR_PARTY = new Party("Operator");
 
