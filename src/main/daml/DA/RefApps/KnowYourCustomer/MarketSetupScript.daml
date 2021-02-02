@@ -12,30 +12,14 @@ import Daml.Script
 import Prelude hiding (submit, submitMustFail)
 import DA.Assert
 import DA.TimeService.TimeService
+import DA.Action
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.Utils
-
-data MarketSetupData = MarketSetupData
-  with
-    cipStream: ContractId DataLicense
-    cddStream: ContractId DataLicense
-    screeningStream: ContractId DataLicense
-    kycBankRelation: PublisherRelationship
-    kycStream: ContractId DataLicense
-
-data LedgerParties = LedgerParties with
-  operator              : Party
-  cipProviderParty      : Party
-  cddProviderParty      : Party
-  screeningProviderParty: Party
-  kycAnalystParty       : Party
-  kycReviewerParty      : Party
-  kycQAParty            : Party
-  bank1Party            : Party
-  bank2Party            : Party
+import DA.RefApps.KnowYourCustomer.MarketSetupTypes
+import DA.RefApps.KnowYourCustomer.Dabl
 
 initialize : LedgerParties -> Script MarketSetupData
 initialize parties = do
@@ -169,6 +153,10 @@ setupMarketForSandbox = do
         bank2Party)
   initialize parties
   pure ()
+
+setupMarketWithDablParties : [DablParty] -> Script ()
+setupMarketWithDablParties parties =
+  void $ initialize $ fromDablParties parties
 
 subscriptionFee : SubscriptionFee
 subscriptionFee = SubscriptionFee 10.000

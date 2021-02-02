@@ -20,21 +20,21 @@ Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
 - Java
 - Maven
+- Make
 
-#### Build with Maven
+#### Build the App
 
 Type:
 ```shell
-mvn clean package
+make build
 ```
 **Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure that you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
+**Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
-There are two options:
-
+These commands start the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox and Navigator. Type:
     ```shell
     daml start --sandbox-option --address=localhost --sandbox-option -w
@@ -55,6 +55,62 @@ There are two options:
 Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
 2.  Start the app by following the steps in [Starting the App](#starting-the-app) section.
+
+## Working with DAML Hub
+
+1. As a first step, build the whole project:
+```
+make clean build
+```
+
+2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/know-your-customer*.dar`), deploy the model (know-your-customer.dar, Deploy Instance).
+
+3. Add the parties to the DAML Hub project: CIP_Provider, CDD_Provider, ScreeningProvider, KYC_Analyst, KYC_Reviewer, KYC_QA, Bank1, Bank2, Operator.
+    - Download `participants.json` (Ledger settings tab).
+    - Download `parties.json` (Users tab).
+
+4. Run the market setup:
+```
+daml script \
+  --participant-config participants.json \
+  --json-api \
+  --dar target/know-your-customer.dar \
+  --script-name DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketWithDablParties \
+  --input-file parties.json
+```
+
+5. Run the triggers from the DAML Hub UI:
+```
+CIP_Provider:
+DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger
+DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger
+DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger
+
+CDD_Provider:
+DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger
+DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger
+DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger
+
+ScreeningProvider:
+DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger
+DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger
+DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger
+
+KYC_Analyst:
+DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger
+DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger
+DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger
+
+KYC_Reviewer:
+DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger
+
+KYC_QA:
+DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger
+
+Operator:
+DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger
+```
+
 
 ## User Guide
 
