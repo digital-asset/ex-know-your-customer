@@ -18,7 +18,7 @@ import org.junit.rules.ExternalResource;
 public class AutoAcceptIT extends TriggerTest {
 
   private static final Sandbox sandbox =
-      buildSandbox("Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup");
+      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoAcceptTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

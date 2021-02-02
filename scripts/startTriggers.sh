@@ -4,9 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-export _JAVA_OPTIONS="-Xms8m -Xmx128m"
-
 set -e
+
+TRIGGER_SERVICE_HOST="127.0.0.1"
+TRIGGER_SERVICE_PORT=8088
 
 cleanup() {
     pids=$(jobs -p)
@@ -14,152 +15,118 @@ cleanup() {
     [ -n "$pids" ] && kill $pids
 }
 
+waitForTriggerService() {
+    until curl "$TRIGGER_SERVICE_HOST:$TRIGGER_SERVICE_PORT/livez"
+    do
+        sleep 1
+    done
+}
+
+startTriggerFromThisPackage() {
+    PAYLOAD=$(printf '{ "triggerName": "%s:%s", "party": "%s", "applicationId": "my-app-id" }' "$PACKAGE_ID" "${1}" "${2}")
+    curl -X POST -H "Content-Type: application/json" \
+        -d "$PAYLOAD" \
+        "$TRIGGER_SERVICE_HOST:$TRIGGER_SERVICE_PORT/v1/triggers"
+}
+
+getPackageId() {
+    daml damlc inspect-dar --json "$DAR_FILE" | jq -j ".main_package_id"
+}
+
 trap "cleanup" INT QUIT TERM
 
-if [ $# -lt 2 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
+if [ $# -lt 3 ]; then
+    echo "${0} SANDBOX_HOST SANDBOX_PORT DAR_FILE"
     exit 1
 fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/know-your-customer.dar}"
+DAR_FILE="${3}"
+PACKAGE_ID="$(getPackageId)"
 
-# Market setup DAML script
 daml script \
     --wall-clock-time \
-    --dar "${DAR_FILE}" \
+    --dar "$DAR_FILE" \
     --script-name DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT}
+    --ledger-host "$SANDBOX_HOST" \
+    --ledger-port "$SANDBOX_PORT"
 echo "DAML script executed"
 
+daml trigger-service \
+    --dar "$DAR_FILE" \
+    --ledger-host localhost \
+    --ledger-port 6865 &
+
+waitForTriggerService
+echo "Trigger service running."
+
 # Automatically propose license prices and automatically accept them
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party KYC_Analyst &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger" \
+    KYC_Analyst
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CIP_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
+    CIP_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CDD_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
+    CDD_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party ScreeningProvider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger" \
+    ScreeningProvider
 
 # Automatically register new licenses
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CIP_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
+    CIP_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CDD_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
+    CDD_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party ScreeningProvider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger" \
+    ScreeningProvider
 
 # Automatically start research and register their licenses
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party KYC_Analyst &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger" \
+    KYC_Analyst
 
 # Automatic review and quality assurance of researchs
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party KYC_Reviewer &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger" \
+    KYC_Reviewer
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party KYC_QA &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger" \
+    KYC_QA
 
 # Automatically merge different screenings into a research and publish the research
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party KYC_Analyst &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger" \
+    KYC_Analyst
 
 # Time management
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Operator &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger" \
+    Operator
 
 # Publishing
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CIP_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger" \
+    CIP_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CDD_Provider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.Publisher:cddTrigger" \
+    CDD_Provider
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party ScreeningProvider &
+startTriggerFromThisPackage \
+    "DA.RefApps.KnowYourCustomer.Triggers.Publisher:screeningTrigger" \
+    ScreeningProvider
 
 sleep 2
 pids=$(jobs -p)

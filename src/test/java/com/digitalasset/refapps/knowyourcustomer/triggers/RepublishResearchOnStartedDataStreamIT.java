@@ -15,7 +15,7 @@ public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
 
   private static final Sandbox sandbox =
       buildSandbox(
-          "Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnStartedDataStreamTestSetup");
+          "DA.RefApps.KnowYourCustomer.Triggers.Tests.RepublishResearchOnStartedDataStreamTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

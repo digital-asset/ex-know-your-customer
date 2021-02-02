@@ -17,7 +17,7 @@ import org.junit.rules.ExternalResource;
 
 public class AutoProposeIT extends TriggerTest {
   private static final Sandbox sandbox =
-      buildSandbox("Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup");
+      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoProposeTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

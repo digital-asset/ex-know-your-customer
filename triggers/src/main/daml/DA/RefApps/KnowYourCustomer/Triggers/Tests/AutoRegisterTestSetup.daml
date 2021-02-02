@@ -3,11 +3,11 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup where
+module DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoRegisterTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.Utils
-import Test.DA.RefApps.KnowYourCustomer.Triggers.AutoAcceptTestSetup qualified as AutoAcceptTestSetup
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoAcceptTestSetup qualified as AutoAcceptTestSetup
 import Daml.Script
 
 setup : Script ()

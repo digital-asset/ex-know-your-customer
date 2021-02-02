@@ -29,7 +29,7 @@ public class PublishResearchOnEmptyDataStreamIT extends TriggerTest {
 
   private static final Sandbox sandbox =
       buildSandbox(
-          "Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup");
+          "DA.RefApps.KnowYourCustomer.Triggers.Tests.PublishResearchOnEmptyDataStreamTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

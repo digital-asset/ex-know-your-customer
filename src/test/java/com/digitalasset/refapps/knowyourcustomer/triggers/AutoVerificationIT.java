@@ -31,7 +31,7 @@ public class AutoVerificationIT extends TriggerTest {
       Arrays.asList(
           KYC_ANALYST.getValue(), KYC_REVIEWER.getValue(), KYC_QUALITYASSURANCE.getValue());
   private static final Sandbox sandbox =
-      buildSandbox("Test.DA.RefApps.KnowYourCustomer.Triggers.AutoVerificationTestSetup");
+      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoVerificationTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

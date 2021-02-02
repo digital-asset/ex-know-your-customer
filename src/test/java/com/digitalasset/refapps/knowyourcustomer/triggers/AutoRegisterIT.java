@@ -21,7 +21,7 @@ import org.junit.rules.ExternalResource;
 public class AutoRegisterIT extends TriggerTest {
 
   private static final Sandbox sandbox =
-      buildSandbox("Test.DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterTestSetup");
+      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoRegisterTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();

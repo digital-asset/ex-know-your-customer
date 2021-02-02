@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup where
+module DA.RefApps.KnowYourCustomer.Triggers.Tests.PublishResearchOnEmptyDataStreamTestSetup where
 
 import DA.Time as T
 import DA.TimeService.TimeService
@@ -15,8 +15,8 @@ import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Utils
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
-import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
-import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeAndSendToReviewTestSetup
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.MergeTest
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.MergeAndSendToReviewTestSetup
 import Test.DA.RefApps.KnowYourCustomer.Utils (createDataStream')
 
 import Daml.Script

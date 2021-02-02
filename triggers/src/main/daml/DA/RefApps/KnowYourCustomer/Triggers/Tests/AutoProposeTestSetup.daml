@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module Test.DA.RefApps.KnowYourCustomer.Triggers.AutoProposeTestSetup where
+module DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoProposeTestSetup where
 
 import DA.Time
 

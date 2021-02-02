@@ -3,14 +3,14 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module Test.DA.RefApps.KnowYourCustomer.Triggers.RepublishResearchOnStartedDataStreamTestSetup where
+module DA.RefApps.KnowYourCustomer.Triggers.Tests.RepublishResearchOnStartedDataStreamTestSetup where
 
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Utils
 import DA.RefApps.KnowYourCustomer.Types
 import Test.DA.RefApps.KnowYourCustomer.RolesTest
-import Test.DA.RefApps.KnowYourCustomer.Triggers.MergeTest
-import Test.DA.RefApps.KnowYourCustomer.Triggers.PublishResearchOnEmptyDataStreamTestSetup
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.MergeTest
+import DA.RefApps.KnowYourCustomer.Triggers.Tests.PublishResearchOnEmptyDataStreamTestSetup
 
 import Daml.Script
 

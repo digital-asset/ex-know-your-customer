@@ -42,7 +42,7 @@ There are two options:
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic (triggers). Type:
     ```shell
-    scripts/startTriggerService.sh localhost 6865 target/know-your-customer.dar
+    scripts/startTriggers.sh localhost 6865 target/know-your-customer.dar
     ```
 
 ### Stopping the App
