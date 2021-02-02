@@ -21,11 +21,14 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <daml-sdk.version>1.8.0</daml-sdk.version>
-        <daml-plugin.version>0.1.4</daml-plugin.version>
         <slf4j.version>1.7.26</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <junit.version>4.12</junit.version>
         <args4j.version>2.33</args4j.version>
+        <daml.model.projectDir>${project.basedir}</daml.model.projectDir>
+        <daml.model.dar>${project.build.directory}/${project.artifactId}.dar</daml.model.dar>
+        <daml.triggers.projectDir>${project.basedir}/triggers</daml.triggers.projectDir>
+        <daml.triggers.dar>${project.build.directory}/${project.artifactId}-triggers.dar</daml.triggers.dar>
     </properties>
 
     <dependencies>
@@ -76,17 +79,81 @@
                     </execution>
                 </executions>
 	    </plugin>
+            <!-- daml build for model, triggers, code generation -->
             <plugin>
-                <groupId>com.digitalasset</groupId>
-                <artifactId>daml-maven-plugin</artifactId>
-                <version>${daml-plugin.version}</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
-                        <id>daml-compile-codegen</id>
+                        <id>daml-model-build</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>damlcompile</goal>
-                            <goal>codegen</goal>
+                            <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>daml</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>--project-root</argument>
+                                <argument>${daml.model.projectDir}</argument>
+                                <argument>-o</argument>
+                                <argument>${daml.model.dar}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>daml-triggers-build</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>daml</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>--project-root</argument>
+                                <argument>${daml.triggers.projectDir}</argument>
+                                <argument>-o</argument>
+                                <argument>${daml.triggers.dar}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>daml-codegen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>daml</executable>
+                            <arguments>
+                                <argument>codegen</argument>
+                                <argument>java</argument>
+                                <argument>-o</argument>
+                                <argument>${project.build.directory}/generated-sources/main/java</argument>
+                                <argument>${daml.model.dar}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- add generated-source to source directories -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources</source>
+                            </sources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -148,7 +215,7 @@
                 <version>3.12.0</version>
                 <configuration>
                     <excludeRoots>
-                        ${project.build.directory}/generated-sources/main/java
+                        ${project.build.directory}/generated-sources
                     </excludeRoots>
                     <rulesets>
                       <ruleset>/rulesets/java/maven-pmd-plugin-default.xml</ruleset>
