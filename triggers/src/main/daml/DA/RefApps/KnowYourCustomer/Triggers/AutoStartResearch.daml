@@ -34,6 +34,7 @@ autoStartResearchProcessTrigger = Trigger
     , registeredTemplate @DataLicense
     , registeredTemplate @PublisherRole
     , registeredTemplate @ReviewerRole
+    , registeredTemplate @QualityAssuranceRole
     ]
   , heartbeat = None
   }
