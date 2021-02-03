@@ -19,6 +19,7 @@ import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.Utils
 import DA.RefApps.KnowYourCustomer.MarketSetupTypes
+import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Dabl
 
 initialize : LedgerParties -> Script MarketSetupData
@@ -94,6 +95,14 @@ initialize parties = do
   cddStream <- createLicense parties.cddProviderParty parties.kycAnalystParty provider2kycRelation reference starting ending staleHours
   screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting ending staleHours
   kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting ending staleHours
+
+  debug "Creating researcher / QA roles"
+  parties.kycReviewerParty `submit` createCmd ReviewerRole with
+    reviewer = parties.kycReviewerParty
+    kycAnalyst = parties.kycAnalystParty
+  parties.kycQAParty `submit` createCmd QualityAssuranceRole with
+    qualityAssurance = parties.kycQAParty
+    kycAnalyst = parties.kycAnalystParty
 
   pure $ MarketSetupData cipStream cddStream screeningStream kycBank1Relation kycStream
 
