@@ -22,7 +22,7 @@ import DA.RefApps.KnowYourCustomer.MarketSetupTypes
 import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Dabl
 
-initialize : LedgerParties -> Script MarketSetupData
+initialize : KycParties -> Script MarketSetupData
 initialize parties = do
   let starting = addRelTime appStartTime (hours 1)
       ending = addRelTime appStartTime (days 366)
@@ -120,7 +120,7 @@ setupMarket = do
   bank1Party             <- allocateParty "Bank1"
   bank2Party             <- allocateParty "Bank2"
   let
-    parties = (LedgerParties
+    parties = (KycParties
       operator
       cipProviderParty
       cddProviderParty
@@ -150,7 +150,7 @@ setupMarketForSandbox = do
     kycQAParty             = getScriptParty "KYC_QA"
     bank1Party             = getScriptParty "Bank1"
     bank2Party             = getScriptParty "Bank2"
-    parties = (LedgerParties
+    parties = (KycParties
         operator
         cipProviderParty
         cddProviderParty

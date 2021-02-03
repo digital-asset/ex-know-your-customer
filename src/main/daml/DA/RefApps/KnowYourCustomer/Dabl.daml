@@ -16,9 +16,9 @@ data DablParty = DablParty with
     partyName : Text
   deriving (Eq, Show)
 
-fromDablParties : [DablParty] -> LedgerParties
+fromDablParties : [DablParty] -> KycParties
 fromDablParties dablParties =
-  LedgerParties with
+  KycParties with
     operator = getParty "Operator"
     cipProviderParty = getParty "CIP_Provider"
     cddProviderParty = getParty "CDD_Provider"
@@ -48,7 +48,7 @@ fromDablPartiesCanConvert = do
       bank1 = "Bank1"
       bank2 = "Bank2"
       expected =
-        LedgerParties with
+        KycParties with
           operator = party operator
           cipProviderParty = party cipProvider
           cddProviderParty = party cddProvider
