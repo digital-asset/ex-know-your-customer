@@ -33,8 +33,8 @@ fromDablParties dablParties =
     partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
     toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
 
-getSandboxParty : Text -> DablParty
-getSandboxParty name = DablParty name name
+dablPartyFromText : Text -> DablParty
+dablPartyFromText name = DablParty name name
 
 fromDablPartiesCanConvert : Script ()
 fromDablPartiesCanConvert = do
@@ -59,7 +59,7 @@ fromDablPartiesCanConvert = do
           bank1Party = party bank1
           bank2Party = party bank2
       actual =
-        fromDablParties $ getSandboxParty <$>
+        fromDablParties $ map dablPartyFromText
           [ operator, cipProvider, cddProvider, screeningProvider,
             kycAnalyst, kycReviewer, kycQA, bank1, bank2 ]
   expected === actual

@@ -65,11 +65,22 @@ make clean build
 
 2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/know-your-customer*.dar`), deploy the model (know-your-customer.dar, Deploy Instance).
 
-3. Add the parties to the DAML Hub project: CIP_Provider, CDD_Provider, ScreeningProvider, KYC_Analyst, KYC_Reviewer, KYC_QA, Bank1, Bank2, Operator.
-    - Download `participants.json` (Ledger settings tab).
-    - Download `parties.json` (Users tab).
+3. Add the parties to the DAML Hub project:
+    - CIP_Provider
+    - CDD_Provider
+    - ScreeningProvider
+    - KYC_Analyst
+    - KYC_Reviewer
+    - KYC_QA
+    - Bank1
+    - Bank2
+    - Operator
 
-4. Run the market setup:
+4. Download the following files:
+    - `participants.json` (Ledger settings tab)
+    - `parties.json` (Users tab)
+
+5. Run the market setup:
 ```
 daml script \
   --participant-config participants.json \
@@ -79,7 +90,7 @@ daml script \
   --input-file parties.json
 ```
 
-5. Run the triggers from the DAML Hub UI:
+6. Run the triggers from the DAML Hub UI:
 ```
 CIP_Provider:
 DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger
