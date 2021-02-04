@@ -7,6 +7,28 @@ module DA.RefApps.KnowYourCustomer.KycExtension where
 
 import DA.RefApps.KnowYourCustomer.Types
 
+template ReviewerRole
+  with
+    reviewer : Party
+    kycAnalyst : Party
+  where
+    signatory reviewer
+    observer kycAnalyst
+
+    key reviewer : Party
+    maintainer key
+
+template QualityAssuranceRole
+  with
+    qualityAssurance : Party
+    kycAnalyst : Party
+  where
+    signatory qualityAssurance
+    observer kycAnalyst
+
+    key qualityAssurance : Party
+    maintainer key
+
 template ResearchProcess
   with
     analyst : Party

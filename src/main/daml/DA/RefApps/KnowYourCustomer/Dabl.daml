@@ -1,0 +1,67 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.KnowYourCustomer.Dabl where
+
+import DA.RefApps.KnowYourCustomer.MarketSetupTypes
+import qualified DA.TextMap as Map
+import DA.Optional (fromSome, fromSomeNote)
+import Daml.Script (Script)
+import DA.Assert
+
+data DablParty = DablParty with
+    party : Text
+    partyName : Text
+  deriving (Eq, Show)
+
+fromDablParties : [DablParty] -> KycParties
+fromDablParties dablParties =
+  KycParties with
+    operator = party "Operator"
+    cipProviderParty = party "CIP_Provider"
+    cddProviderParty = party "CDD_Provider"
+    screeningProviderParty = party "ScreeningProvider"
+    kycAnalystParty = party "KYC_Analyst"
+    kycReviewerParty = party "KYC_Reviewer"
+    kycQAParty = party "KYC_QA"
+    bank1Party = party "Bank1"
+    bank2Party = party "Bank2"
+  where
+    party name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
+    partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
+    toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
+
+dablPartyFromText : Text -> DablParty
+dablPartyFromText name = DablParty name name
+
+testFromDablPartiesCanConvert : Script ()
+testFromDablPartiesCanConvert = do
+  let operator = "Operator"
+      cipProvider = "CIP_Provider"
+      cddProvider = "CDD_Provider"
+      screeningProvider = "ScreeningProvider"
+      kycAnalyst = "KYC_Analyst"
+      kycReviewer = "KYC_Reviewer"
+      kycQA = "KYC_QA"
+      bank1 = "Bank1"
+      bank2 = "Bank2"
+      expected =
+        KycParties with
+          operator = party operator
+          cipProviderParty = party cipProvider
+          cddProviderParty = party cddProvider
+          screeningProviderParty = party screeningProvider
+          kycAnalystParty = party kycAnalyst
+          kycReviewerParty = party kycReviewer
+          kycQAParty = party kycQA
+          bank1Party = party bank1
+          bank2Party = party bank2
+      actual =
+        fromDablParties $ map dablPartyFromText
+          [ operator, cipProvider, cddProvider, screeningProvider,
+            kycAnalyst, kycReviewer, kycQA, bank1, bank2 ]
+  expected === actual
+ where
+  party name = fromSome $ partyFromText name

@@ -12,32 +12,17 @@ import Daml.Script
 import Prelude hiding (submit, submitMustFail)
 import DA.Assert
 import DA.TimeService.TimeService
+import DA.Action
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.Utils
+import DA.RefApps.KnowYourCustomer.MarketSetupTypes
+import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.RefApps.KnowYourCustomer.Dabl
 
-data MarketSetupData = MarketSetupData
-  with
-    cipStream: ContractId DataLicense
-    cddStream: ContractId DataLicense
-    screeningStream: ContractId DataLicense
-    kycBankRelation: PublisherRelationship
-    kycStream: ContractId DataLicense
-
-data LedgerParties = LedgerParties with
-  operator              : Party
-  cipProviderParty      : Party
-  cddProviderParty      : Party
-  screeningProviderParty: Party
-  kycAnalystParty       : Party
-  kycReviewerParty      : Party
-  kycQAParty            : Party
-  bank1Party            : Party
-  bank2Party            : Party
-
-initialize : LedgerParties -> Script MarketSetupData
+initialize : KycParties -> Script MarketSetupData
 initialize parties = do
   let starting = addRelTime appStartTime (hours 1)
       ending = addRelTime appStartTime (days 366)
@@ -111,6 +96,14 @@ initialize parties = do
   screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting ending staleHours
   kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting ending staleHours
 
+  debug "Creating researcher / QA roles"
+  parties.kycReviewerParty `submit` createCmd ReviewerRole with
+    reviewer = parties.kycReviewerParty
+    kycAnalyst = parties.kycAnalystParty
+  parties.kycQAParty `submit` createCmd QualityAssuranceRole with
+    qualityAssurance = parties.kycQAParty
+    kycAnalyst = parties.kycAnalystParty
+
   pure $ MarketSetupData cipStream cddStream screeningStream kycBank1Relation kycStream
 
 -- Proper way of handling parties
@@ -127,7 +120,7 @@ setupMarket = do
   bank1Party             <- allocateParty "Bank1"
   bank2Party             <- allocateParty "Bank2"
   let
-    parties = (LedgerParties
+    parties = (KycParties
       operator
       cipProviderParty
       cddProviderParty
@@ -157,7 +150,7 @@ setupMarketForSandbox = do
     kycQAParty             = getScriptParty "KYC_QA"
     bank1Party             = getScriptParty "Bank1"
     bank2Party             = getScriptParty "Bank2"
-    parties = (LedgerParties
+    parties = (KycParties
         operator
         cipProviderParty
         cddProviderParty
@@ -169,6 +162,10 @@ setupMarketForSandbox = do
         bank2Party)
   initialize parties
   pure ()
+
+setupMarketWithDablParties : [DablParty] -> Script ()
+setupMarketWithDablParties parties =
+  void $ initialize $ fromDablParties parties
 
 subscriptionFee : SubscriptionFee
 subscriptionFee = SubscriptionFee 10.000

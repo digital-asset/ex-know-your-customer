@@ -1,0 +1,29 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.KnowYourCustomer.MarketSetupTypes where
+
+import DA.RefApps.KnowYourCustomer.Roles
+import DA.RefApps.KnowYourCustomer.DataLicense
+
+data MarketSetupData = MarketSetupData
+  with
+    cipStream: ContractId DataLicense
+    cddStream: ContractId DataLicense
+    screeningStream: ContractId DataLicense
+    kycBankRelation: PublisherRelationship
+    kycStream: ContractId DataLicense
+
+data KycParties = KycParties with
+  operator              : Party
+  cipProviderParty      : Party
+  cddProviderParty      : Party
+  screeningProviderParty: Party
+  kycAnalystParty       : Party
+  kycReviewerParty      : Party
+  kycQAParty            : Party
+  bank1Party            : Party
+  bank2Party            : Party
+ deriving (Eq, Show)

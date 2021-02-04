@@ -10,7 +10,6 @@ import Daml.Trigger
 import DA.Foldable
 import DA.Time
 import DA.Action
-import DA.Optional
 
 import DA.RefApps.KnowYourCustomer.Triggers.Logging
 import DA.RefApps.KnowYourCustomer.Roles
@@ -18,34 +17,32 @@ import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.KycExtension
+import DA.List (head)
 
 -- This trigger looks for Research Licenses (which are the results of
 -- the following process: request - propose price - accept) and
 --  1) starts a Research Process for each,
 --  2) registers each
 autoStartResearchProcessTrigger : Trigger ()
-autoStartResearchProcessTrigger =
-    createAutoStartResearchProcessTrigger reviewer qualityAssurance
-  where
-    reviewer = fromSome (partyFromText "KYC_Reviewer")
-    qualityAssurance = fromSome (partyFromText "KYC_QA")
-
-createAutoStartResearchProcessTrigger : Party -> Party -> Trigger ()
-createAutoStartResearchProcessTrigger reviewer qualityAssurance = Trigger
+autoStartResearchProcessTrigger = Trigger
   { initialize = pure ()
   , updateState = \_ -> pure ()
-  , rule = startResearchProcess reviewer qualityAssurance
+  , rule = startResearchProcess
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @EmptyDataStream
     , registeredTemplate @PublisherConsumerRelationship
     , registeredTemplate @DataLicense
     , registeredTemplate @PublisherRole
+    , registeredTemplate @ReviewerRole
+    , registeredTemplate @QualityAssuranceRole
     ]
   , heartbeat = None
   }
 
-startResearchProcess : Party -> Party -> Party -> TriggerA () ()
-startResearchProcess reviewer qualityAssurance actualParty = do
+startResearchProcess : Party -> TriggerA () ()
+startResearchProcess actualParty = do
+  reviewer <- getReviewer
+  qualityAssurance <- getQA
   licenses <- query @DataLicense
   publisherRoles <- query @PublisherRole
   let researchLicensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == actualParty) licenses
@@ -77,3 +74,13 @@ startingDate = addRelTime appStartTime (hours 1)
 
 endingDate : Time
 endingDate = addRelTime appStartTime (days 500)
+
+getReviewer : TriggerA () Party
+getReviewer = do
+  (_, reviewerRole) <- head <$> query @ReviewerRole
+  pure reviewerRole.reviewer
+
+getQA : TriggerA () Party
+getQA = do
+  (_, qualityAssuranceRole) <- head <$> query @QualityAssuranceRole
+  pure qualityAssuranceRole.qualityAssurance
