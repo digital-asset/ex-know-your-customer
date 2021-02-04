@@ -19,25 +19,25 @@ data DablParty = DablParty with
 fromDablParties : [DablParty] -> KycParties
 fromDablParties dablParties =
   KycParties with
-    operator = getParty "Operator"
-    cipProviderParty = getParty "CIP_Provider"
-    cddProviderParty = getParty "CDD_Provider"
-    screeningProviderParty = getParty "ScreeningProvider"
-    kycAnalystParty = getParty "KYC_Analyst"
-    kycReviewerParty = getParty "KYC_Reviewer"
-    kycQAParty = getParty "KYC_QA"
-    bank1Party = getParty "Bank1"
-    bank2Party = getParty "Bank2"
+    operator = party "Operator"
+    cipProviderParty = party "CIP_Provider"
+    cddProviderParty = party "CDD_Provider"
+    screeningProviderParty = party "ScreeningProvider"
+    kycAnalystParty = party "KYC_Analyst"
+    kycReviewerParty = party "KYC_Reviewer"
+    kycQAParty = party "KYC_QA"
+    bank1Party = party "Bank1"
+    bank2Party = party "Bank2"
   where
-    getParty name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
+    party name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
     partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
     toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
 
 dablPartyFromText : Text -> DablParty
 dablPartyFromText name = DablParty name name
 
-fromDablPartiesCanConvert : Script ()
-fromDablPartiesCanConvert = do
+testFromDablPartiesCanConvert : Script ()
+testFromDablPartiesCanConvert = do
   let operator = "Operator"
       cipProvider = "CIP_Provider"
       cddProvider = "CDD_Provider"
