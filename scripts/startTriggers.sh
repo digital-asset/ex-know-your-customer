@@ -23,38 +23,39 @@ waitForTriggerService() {
 }
 
 startTriggerFromThisPackage() {
-    PAYLOAD=$(printf '{ "triggerName": "%s:%s", "party": "%s", "applicationId": "my-app-id" }' "$PACKAGE_ID" "${1}" "${2}")
+    PAYLOAD=$(printf '{ "triggerName": "%s:%s", "party": "%s", "applicationId": "my-app-id" }' "$TRIGGER_PACKAGE_ID" "${1}" "${2}")
     curl -X POST -H "Content-Type: application/json" \
         -d "$PAYLOAD" \
         "$TRIGGER_SERVICE_HOST:$TRIGGER_SERVICE_PORT/v1/triggers"
 }
 
 getPackageId() {
-    daml damlc inspect-dar --json "$DAR_FILE" | jq -j ".main_package_id"
+    daml damlc inspect-dar --json "$1" | jq -j ".main_package_id"
 }
 
 trap "cleanup" INT QUIT TERM
 
 if [ $# -lt 3 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT DAR_FILE"
+    echo "${0} SANDBOX_HOST SANDBOX_PORT MODEL_DAR_FILE TRIGGER_DAR_FILE"
     exit 1
 fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
-DAR_FILE="${3}"
-PACKAGE_ID="$(getPackageId)"
+MODEL_DAR_FILE="${3}"
+TRIGGER_DAR_FILE="${4}"
+TRIGGER_PACKAGE_ID="$(getPackageId $TRIGGER_DAR_FILE)"
 
 daml script \
     --wall-clock-time \
-    --dar "$DAR_FILE" \
+    --dar "$MODEL_DAR_FILE" \
     --script-name DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox \
     --ledger-host "$SANDBOX_HOST" \
     --ledger-port "$SANDBOX_PORT"
 echo "DAML script executed"
 
 daml trigger-service \
-    --dar "$DAR_FILE" \
+    --dar "$TRIGGER_DAR_FILE" \
     --ledger-host localhost \
     --ledger-port 6865 &
 
