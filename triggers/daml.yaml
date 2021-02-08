@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-sdk-version: 1.8.0
+sdk-version: 1.9.0
 name: know-your-customer-triggers
 source: src/main/daml
 parties:
