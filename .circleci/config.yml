@@ -13,17 +13,6 @@ executors:
   daml-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
-  docker_buildpack:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-
-only-release-tags: &only-release-tags
-  filters:
-    tags:
-      only: /^v.*/
-    branches:
-      ignore: /.*/
-
 commands:
   install_sdk:
     description: "Install the DAML SDK"
@@ -150,17 +139,6 @@ jobs:
       - store_artifacts:
           path: target/daml-test-reports
 
-  github_release:
-    executor: docker_buildpack
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Push a new github release
-          command: |
-            ./scripts/release.sh ex-know-your-customer
-
 workflows:
   version: 2
   build_and_test:
@@ -173,18 +151,3 @@ workflows:
       - blackduck_check:
           daml_sdk_version: "1.9.0"
           context: blackduck
-  build_and_release:
-    jobs:
-      - daml_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.9.0"
-      - mvn_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.9.0"
-          context: blackduck
-      - github_release:
-          context: github-refapp-repo-context
-          requires:
-            - daml_test
-            - mvn_test
-          <<: *only-release-tags
