@@ -23,9 +23,8 @@ public abstract class TriggerTest {
     return Sandbox.builder()
         .dar(Paths.get("target/know-your-customer-triggers.dar"))
         .parties(OPERATOR, CIP_PROVIDER, BANK_1, KYC_ANALYST, KYC_REVIEWER, KYC_QUALITYASSURANCE)
-        .module(module)
-        .startScript("setup")
-        .timeout(Duration.ofSeconds(90))
+        .moduleAndScript(module, "setup")
+        .sandboxWaitTimeout(Duration.ofSeconds(90))
         .build();
   }
 
