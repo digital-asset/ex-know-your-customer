@@ -149,7 +149,7 @@ jobs:
             ci-build digitalasset_ex_know_your_customer master \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.notices.report=true \
-            --detect.report.timeout=480
+            --detect.timeout=3600
       - run:
           command: cp digitalasset_ex_know_your_customer_master_Black_Duck_Notices_Report.txt NOTICE
       - persist_to_workspace:
