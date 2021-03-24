@@ -35,7 +35,8 @@ import org.junit.rules.ExternalResource;
 
 public class EndToEndIT {
 
-  private static final Path RELATIVE_DAR_PATH = Paths.get("target/know-your-customer.dar");
+  private static final Path RELATIVE_MODEL_DAR_PATH = Paths.get("target/know-your-customer.dar");
+  private static final Path RELATIVE_TRIGGER_DAR_PATH = Paths.get("target/know-your-customer-triggers.dar");
   private static final Party OPERATOR = new Party("Operator");
   private static final Party CIP_PROVIDER = new Party("CIP_Provider");
   private static final Party CDD_PROVIDER = new Party("CDD_Provider");
@@ -48,7 +49,7 @@ public class EndToEndIT {
   private static final Duration systemPeriodTime = Duration.ofSeconds(5);
   private static Sandbox sandbox =
       Sandbox.builder()
-          .dar(RELATIVE_DAR_PATH)
+          .dar(RELATIVE_MODEL_DAR_PATH)
           .parties(
               OPERATOR,
               CIP_PROVIDER,
@@ -80,7 +81,8 @@ public class EndToEndIT {
                 "scripts/startTriggers.sh",
                 "localhost",
                 Integer.toString(sandbox.getSandboxPort()),
-                RELATIVE_DAR_PATH.toString())
+                RELATIVE_MODEL_DAR_PATH.toString(),
+                RELATIVE_TRIGGER_DAR_PATH.toString())
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();

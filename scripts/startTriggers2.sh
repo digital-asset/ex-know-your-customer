@@ -7,7 +7,7 @@
 set -e
 
 TRIGGER_SERVICE_HOST="127.0.0.1"
-TRIGGER_SERVICE_PORT=8088
+TRIGGER_SERVICE_PORT=8089
 
 cleanup() {
     pids=$(jobs -p)
@@ -44,6 +44,7 @@ SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
 MODEL_DAR_FILE="${3}"
 TRIGGER_DAR_FILE="${4}"
+
 TRIGGER_PACKAGE_ID="$(getPackageId $TRIGGER_DAR_FILE)"
 
 daml script \
@@ -56,6 +57,7 @@ echo "DAML script executed"
 
 daml trigger-service \
     --dar "$TRIGGER_DAR_FILE" \
+    --http-port $TRIGGER_SERVICE_PORT \
     --ledger-host localhost \
     --ledger-port $SANDBOX_PORT &
 
