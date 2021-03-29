@@ -37,12 +37,12 @@ make build
 These commands start the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox and Navigator. Type:
     ```shell
-    daml start --sandbox-option --address=localhost --sandbox-option -w
+    launchers/sandbox+navigator
     ```
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic (triggers). Type:
     ```shell
-    scripts/startTriggers.sh localhost 6865 target/know-your-customer.dar target/know-your-customer-triggers.dar
+    launchers/populate+automation
     ```
 
 ### Stopping the App
