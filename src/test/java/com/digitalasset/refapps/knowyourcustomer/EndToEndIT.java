@@ -13,7 +13,7 @@ import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
 import com.google.protobuf.InvalidProtocolBufferException;
-import da.refapps.knowyourcustomer.datalicense.LiveStreamLicense;
+import da.refapps.knowyourcustomer.datalicense.RegisteredDataLicense;
 import da.refapps.knowyourcustomer.publication.Publication;
 import da.refapps.knowyourcustomer.roles.DataLicenseProposal;
 import da.refapps.knowyourcustomer.roles.DataStreamRequest;
@@ -95,7 +95,7 @@ public class EndToEndIT {
     eventually(
         () ->
             ledger.getCreatedContractId(
-                KYC_ANALYST, LiveStreamLicense.TEMPLATE_ID, LiveStreamLicense.ContractId::new));
+                KYC_ANALYST, RegisteredDataLicense.TEMPLATE_ID, RegisteredDataLicense.ContractId::new));
   }
 
   private TimeManager.ContractId getTimeManager() {
