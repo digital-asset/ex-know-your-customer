@@ -36,7 +36,8 @@ import org.junit.rules.ExternalResource;
 public class EndToEndIT {
 
   private static final Path RELATIVE_MODEL_DAR_PATH = Paths.get("target/know-your-customer.dar");
-  private static final Path RELATIVE_TRIGGER_DAR_PATH = Paths.get("target/know-your-customer-triggers.dar");
+  private static final Path RELATIVE_TRIGGER_DAR_PATH =
+      Paths.get("target/know-your-customer-triggers.dar");
   private static final Party OPERATOR = new Party("Operator");
   private static final Party CIP_PROVIDER = new Party("CIP_Provider");
   private static final Party CDD_PROVIDER = new Party("CDD_Provider");
@@ -78,9 +79,7 @@ public class EndToEndIT {
     File errLog = new File("integration-marketSetupAndTriggers.err.log");
     marketSetupAndTriggers =
         new ProcessBuilder()
-            .command(
-                "scripts/startTriggers.py",
-                Integer.toString(sandbox.getSandboxPort()))
+            .command("scripts/startTriggers.py", Integer.toString(sandbox.getSandboxPort()))
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();
@@ -93,7 +92,9 @@ public class EndToEndIT {
     eventually(
         () ->
             ledger.getCreatedContractId(
-                KYC_ANALYST, RegisteredDataLicense.TEMPLATE_ID, RegisteredDataLicense.ContractId::new));
+                KYC_ANALYST,
+                RegisteredDataLicense.TEMPLATE_ID,
+                RegisteredDataLicense.ContractId::new));
   }
 
   private TimeManager.ContractId getTimeManager() {
