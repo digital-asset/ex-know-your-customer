@@ -106,10 +106,6 @@ public class EndToEndIT {
     marketSetupAndTriggers.destroyForcibly();
   }
 
-  // TODO: Fix this test
-  // 1) Use scenario service
-  // 2) Solve the problem of raciness
-  @Ignore("This test is very slow and very racy. That's why we need the sleeps.")
   @Test
   public void endToEndIT() throws InvalidProtocolBufferException, InterruptedException {
     Thread.sleep(2000);
