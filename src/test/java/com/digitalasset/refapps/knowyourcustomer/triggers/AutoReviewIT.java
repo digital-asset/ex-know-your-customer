@@ -14,6 +14,7 @@ import com.digitalasset.testing.utils.ContractWithId;
 import da.refapps.knowyourcustomer.kycextension.QualityAssuranceRequest;
 import da.refapps.knowyourcustomer.kycextension.ReviewRequest;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -40,6 +41,7 @@ public class AutoReviewIT extends TriggerTest {
     return KYC_REVIEWER;
   }
 
+  @Ignore
   @Test
   public void testAutoReview() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

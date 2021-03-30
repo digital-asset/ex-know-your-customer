@@ -7,6 +7,7 @@ package com.digitalasset.refapps.knowyourcustomer.triggers;
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.testing.junit4.Sandbox;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -35,6 +36,7 @@ public class RepublishResearchOnStartedDataStreamIT extends TriggerTest {
     return KYC_ANALYST;
   }
 
+  @Ignore
   @Test
   public void testReviewedResearchIsRepublishedOnDataStream() {
     PublishResearchOnEmptyDataStreamIT.doTestReviewedResearchIsPublished(sandbox, 2);

@@ -17,6 +17,7 @@ import da.refapps.knowyourcustomer.datastream.EmptyDataStream;
 import da.refapps.knowyourcustomer.kycextension.ResearchProcess;
 import java.io.IOException;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -44,6 +45,7 @@ public class AutoStartResearchProcessIT extends TriggerTest {
     return KYC_ANALYST;
   }
 
+  @Ignore
   @Test
   public void testAutoStartResearchWithRegister() throws IOException {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

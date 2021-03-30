@@ -13,6 +13,7 @@ import da.refapps.knowyourcustomer.kycextension.QualityAssuranceRequest;
 import da.refapps.knowyourcustomer.kycextension.ReviewRequest;
 import da.refapps.knowyourcustomer.publication.Publication;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -40,6 +41,7 @@ public class MergeAndSendToReviewIT extends TriggerTest {
     return KYC_ANALYST;
   }
 
+  @Ignore
   @Test
   public void testPublicationsAreMergedIntoAResearchAndSentForReview() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

@@ -37,6 +37,7 @@ public class AutoProposeIT extends TriggerTest {
     return CIP_PROVIDER;
   }
 
+  @Ignore
   @Test
   public void testAutoProposal() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

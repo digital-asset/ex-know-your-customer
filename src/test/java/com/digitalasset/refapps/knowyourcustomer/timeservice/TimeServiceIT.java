@@ -24,6 +24,7 @@ import java.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -120,6 +121,7 @@ public class TimeServiceIT extends TriggerTest {
         });
   }
 
+  @Ignore
   @Test
   public void modelPeriodTimeCanBeChanged()
       throws InvalidProtocolBufferException, InterruptedException {
