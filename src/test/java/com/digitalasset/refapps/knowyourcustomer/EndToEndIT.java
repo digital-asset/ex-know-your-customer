@@ -63,7 +63,6 @@ public class EndToEndIT {
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
           .sandboxWaitTimeout(Duration.ofSeconds(90))
-          .moduleAndScript("DA.RefApps.KnowYourCustomer.MarketSetupScript", "setupMarketForSandbox")
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
@@ -79,7 +78,12 @@ public class EndToEndIT {
     File errLog = new File("integration-marketSetupAndTriggers.err.log");
     marketSetupAndTriggers =
         new ProcessBuilder()
-            .command("scripts/startTriggers.py", Integer.toString(sandbox.getSandboxPort()))
+            .command(
+                "scripts/startTriggers.sh",
+                "localhost",
+                Integer.toString(sandbox.getSandboxPort()),
+                RELATIVE_MODEL_DAR_PATH.toString(),
+                RELATIVE_TRIGGER_DAR_PATH.toString())
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();
