@@ -124,7 +124,7 @@ public class EndToEndIT {
     final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
     logger.debug("started");
 
-    Thread.sleep(2000);
+    Thread.sleep(10000);
 
     logger.debug("consuming...");
     consumeInitialContracts();
