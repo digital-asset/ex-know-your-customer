@@ -70,7 +70,7 @@ public class EndToEndIT {
           .useWallclockTime()
           .sandboxWaitTimeout(Duration.ofSeconds(90))
           .observationTimeout(
-              Duration.ofSeconds(20)) // because we have a lot of triggers causing the test flaky
+              Duration.ofSeconds(10)) // because we have a lot of triggers causing the test flaky
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
@@ -124,7 +124,7 @@ public class EndToEndIT {
     final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
     logger.debug("started");
 
-    Thread.sleep(10000);
+    Thread.sleep(30000);
 
     logger.debug("consuming...");
     consumeInitialContracts();
