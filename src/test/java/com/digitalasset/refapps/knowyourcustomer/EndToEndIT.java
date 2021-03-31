@@ -30,8 +30,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.function.Predicate;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EndToEndIT {
 
@@ -114,17 +120,25 @@ public class EndToEndIT {
 
   @Test
   public void endToEndIT() throws InvalidProtocolBufferException, InterruptedException {
+    final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
+    logger.debug("started");
+
     Thread.sleep(2000);
+
+    logger.debug("consuming...");
     consumeInitialContracts();
+    logger.debug("consumed");
 
     Thread.sleep(2000);
     continueTime();
+    logger.debug("continued");
 
     Thread.sleep(2000);
     Research research = getResearchFor(BANK_1);
     assertTrue(research.researchData.researchCip instanceof Data);
     assertTrue(research.researchData.researchCdd instanceof NotAvailable);
     assertTrue(research.researchData.researchScreening instanceof Data);
+    logger.debug("got research");
 
     Thread.sleep(3000);
     PublisherConsumerRelationship.ContractId analystWithBank2 =
