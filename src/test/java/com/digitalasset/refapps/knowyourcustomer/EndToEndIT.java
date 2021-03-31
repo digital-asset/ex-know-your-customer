@@ -69,7 +69,8 @@ public class EndToEndIT {
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
           .sandboxWaitTimeout(Duration.ofSeconds(90))
-          .observationTimeout(Duration.ofSeconds(20)) // because we have a lot of triggers causing the test flaky
+          .observationTimeout(
+              Duration.ofSeconds(20)) // because we have a lot of triggers causing the test flaky
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
