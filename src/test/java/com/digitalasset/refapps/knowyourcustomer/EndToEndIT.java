@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 public class EndToEndIT {
 
+  private final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
   private static final Path RELATIVE_MODEL_DAR_PATH = Paths.get("target/know-your-customer.dar");
   private static final Path RELATIVE_TRIGGER_DAR_PATH =
       Paths.get("target/know-your-customer-triggers.dar");
@@ -116,12 +117,11 @@ public class EndToEndIT {
 
   @After
   public void tearDown() {
-    marketSetupAndTriggers.destroyForcibly();
+    marketSetupAndTriggers.destroy();
   }
 
   @Test
   public void endToEndIT() throws InvalidProtocolBufferException, InterruptedException {
-    final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
     logger.debug("started");
 
     Thread.sleep(30000);
