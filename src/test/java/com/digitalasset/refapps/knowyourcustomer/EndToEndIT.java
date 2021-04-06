@@ -86,9 +86,7 @@ public class EndToEndIT {
     logger.debug("starting triggers");
     marketSetupAndTriggers =
         new ProcessBuilder()
-            // TODO call launcher script instead to integrate that to this test too, but:
-            // figure out why the trigger service is not properly killed then (a dangling java
-            // process stays)
+            // need to call Python directly for proper subprocess cleanup (not sure why though)
             .command("scripts/startTriggers.py", Integer.toString(sandbox.getSandboxPort()))
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
