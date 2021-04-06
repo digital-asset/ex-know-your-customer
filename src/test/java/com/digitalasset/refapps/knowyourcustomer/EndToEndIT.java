@@ -181,14 +181,6 @@ public class EndToEndIT {
         isStreamRequestBetween(KYC_ANALYST, CDD_PROVIDER),
         isStreamRequestBetween(KYC_ANALYST, SCREENING_PROVIDER),
         isStreamRequestBetween(BANK_1, KYC_ANALYST));
-    ledger.observeMatchingContracts(
-        KYC_ANALYST,
-        Publication.TEMPLATE_ID,
-        Publication::fromValue,
-        true,
-        isPublishedBy(CIP_PROVIDER),
-        isPublishedBy(CDD_PROVIDER),
-        isPublishedBy(SCREENING_PROVIDER));
   }
 
   private Predicate<Publication> isPublishedBy(Party party) {
