@@ -19,7 +19,6 @@ import DA.RefApps.KnowYourCustomer.Roles
 import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.Utils
 import DA.RefApps.KnowYourCustomer.MarketSetupTypes
-import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Dabl
 
 initialize : KycParties -> Script MarketSetupData
@@ -41,7 +40,7 @@ initialize parties = do
       operator = parties.operator
       currentTime = appStartTime
       observers = [parties.cipProviderParty, parties.cddProviderParty, parties.screeningProviderParty, parties.kycAnalystParty,
-                   parties.kycReviewerParty, parties.kycQAParty, parties.bank1Party, parties.bank2Party]
+                   parties.bank1Party, parties.bank2Party]
 
   debug "Creating time configuration"
   timeConfigurationCid <- submit parties.operator do
@@ -96,14 +95,6 @@ initialize parties = do
   screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting ending staleHours
   kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting ending staleHours
 
-  debug "Creating researcher / QA roles"
-  parties.kycReviewerParty `submit` createCmd ReviewerRole with
-    reviewer = parties.kycReviewerParty
-    kycAnalyst = parties.kycAnalystParty
-  parties.kycQAParty `submit` createCmd QualityAssuranceRole with
-    qualityAssurance = parties.kycQAParty
-    kycAnalyst = parties.kycAnalystParty
-
   pure $ MarketSetupData cipStream cddStream screeningStream kycBank1Relation kycStream
 
 -- Proper way of handling parties
@@ -115,8 +106,6 @@ setupMarket = do
   cddProviderParty       <- allocateParty "CDD_Provider"
   screeningProviderParty <- allocateParty "ScreeningProvider"
   kycAnalystParty        <- allocateParty "KYC_Analyst"
-  kycReviewerParty       <- allocateParty "KYC_Reviewer"
-  kycQAParty             <- allocateParty "KYC_QA"
   bank1Party             <- allocateParty "Bank1"
   bank2Party             <- allocateParty "Bank2"
   let
@@ -126,8 +115,6 @@ setupMarket = do
       cddProviderParty
       screeningProviderParty
       kycAnalystParty
-      kycReviewerParty
-      kycQAParty
       bank1Party
       bank2Party)
   initialize parties
@@ -146,8 +133,6 @@ setupMarketForSandbox = do
     cddProviderParty       = getScriptParty "CDD_Provider"
     screeningProviderParty = getScriptParty "ScreeningProvider"
     kycAnalystParty        = getScriptParty "KYC_Analyst"
-    kycReviewerParty       = getScriptParty "KYC_Reviewer"
-    kycQAParty             = getScriptParty "KYC_QA"
     bank1Party             = getScriptParty "Bank1"
     bank2Party             = getScriptParty "Bank2"
     parties = (KycParties
@@ -156,8 +141,6 @@ setupMarketForSandbox = do
         cddProviderParty
         screeningProviderParty
         kycAnalystParty
-        kycReviewerParty
-        kycQAParty
         bank1Party
         bank2Party)
   initialize parties

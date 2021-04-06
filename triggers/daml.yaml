@@ -11,8 +11,6 @@ parties:
   - CDD_Provider
   - ScreeningProvider
   - KYC_Analyst
-  - KYC_Reviewer
-  - KYC_QA
   - Bank1
   - Bank2
   - Operator

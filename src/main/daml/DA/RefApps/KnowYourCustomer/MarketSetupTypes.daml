@@ -22,8 +22,6 @@ data KycParties = KycParties with
   cddProviderParty      : Party
   screeningProviderParty: Party
   kycAnalystParty       : Party
-  kycReviewerParty      : Party
-  kycQAParty            : Party
   bank1Party            : Party
   bank2Party            : Party
  deriving (Eq, Show)

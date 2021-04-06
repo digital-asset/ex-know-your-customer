@@ -63,15 +63,16 @@ public class PublishResearchOnEmptyDataStreamIT extends TriggerTest {
     ledger.getMatchedContract(KYC_ANALYST, Publication.TEMPLATE_ID, cid -> null);
     Research research = getResearch(ledger);
 
-    assertThat(research.researchData.researchCip, instanceOf(Data.class));
-    Data<CipData> cip = (Data<CipData>) research.researchData.researchCip;
+    assertThat(research.researchDataValue.researchCip, instanceOf(Data.class));
+    Data<CipData> cip = (Data<CipData>) research.researchDataValue.researchCip;
     assertEquals(cip.value.tin, "TIN1");
 
-    assertThat(research.researchData.researchScreening, instanceOf(Data.class));
-    Data<ScreeningData> screening = (Data<ScreeningData>) research.researchData.researchScreening;
+    assertThat(research.researchDataValue.researchScreening, instanceOf(Data.class));
+    Data<ScreeningData> screening =
+        (Data<ScreeningData>) research.researchDataValue.researchScreening;
     assertEquals(screening.value.ofac, "Not listed1");
 
-    assertThat(research.researchData.researchCdd, instanceOf(NotAvailable.class));
+    assertThat(research.researchDataValue.researchCdd, instanceOf(NotAvailable.class));
   }
 
   private static Research getResearch(DefaultLedgerAdapter ledger) {

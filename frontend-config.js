@@ -12,28 +12,6 @@ export const version = {
 
 // --- Creating views --------------------------------------------------------------------
 
-function reviewsView() {
-    return createTab("Research review requests", "ReviewRequest@",
-        [
-            createCol("reference", "Customer name", 140, r => showKycReference(r.reference || r.observation.label)),
-            createCol("analyst", "Analyst", 80, r => r.analyst),
-            createCol("reviewer", "Reviewer", 80, r => r.reviewer),
-            createCol("time", "Time", 80, r => r.time),
-        ]
-    );
-}
-
-function qualityAssuranceView() {
-    return createTab("Quality assurance requests", "QualityAssuranceRequest@",
-        [
-            createCol("reference", "Customer name", 140, r => showKycReference(r.reference || r.observation.label)),
-            createCol("analyst", "Analyst", 80, r => r.analyst),
-            createCol("qualityAssurance", "Quality Assurance", 80, r => r.qualityAssurance),
-            createCol("time", "Time", 80, r => r.time),
-        ]
-    );
-}
-
 function publisherProvidedView(publisher) {
     return createTab("Provided KYC streams", "DataStream@",
         [
@@ -58,10 +36,6 @@ function publisherDataView(publisher, withResearchFlags) {
         createCol("time", "Time", 80, r => r.observation.time),
         createCol("observation", "Data", 160, r => showKycObservationValue(r.observation))
     ];
-    if (withResearchFlags) {
-        cols.push(createCol("reviewedBy", "Reviewed by", 80, r => r.observation.value.Research.reviewedBy));
-        cols.push(createCol("verifiedByQA", "Verified by QA", 80, r => r.observation.value.Research.verifiedByQA ? "Verified" : "Not selected"));
-    }
     return createTab("Sent KYC data", ":Publication@",
         cols,
         {
@@ -79,10 +53,6 @@ function consumerView(consumer, withResearchFlags) {
         createCol("reference", "Customer name", 140, r => showKycReference(r.observation.label)),
         createCol("observation", "Data", 160, r => showKycObservationValue(r.observation))
     ];
-    if (withResearchFlags) {
-        cols.push(createCol("reviewedBy", "Reviewed by", 80, r => r.observation.value.Research.reviewedBy));
-        cols.push(createCol("verifiedByQA", "Verified by QA", 80, r => r.observation.value.Research.verifiedByQA ? "Verified" : "Not selected"));
-    }
     return createTab("Received KYC data", ":Publication@",
         cols,
         {
@@ -292,8 +262,6 @@ export const customViews = (userId, party, role) => {
             currentTimeView
         };
     }
-    const reviewsViewInstance = reviewsView()
-    const qualityAssuranceInstance = qualityAssuranceView()
 
     const publisherDataViewInstance = publisherDataView(party, false);
     const publisherProvidedViewInstance = publisherProvidedView(party);
@@ -346,20 +314,6 @@ export const customViews = (userId, party, role) => {
             currentTimeView
         };
     }
-    if (partyIs('KYC_QA')) {
-        return {
-            qualityAssuranceInstance,
-            currentTimeView
-        };
-    }
-
-    if (partyIs('KYC_Reviewer')) {
-        return {
-            reviewsViewInstance,
-            currentTimeView
-        };
-    }
-
     const publisherDataViewWithFlagsInstance = publisherDataView(party, true);
     const consumerViewInstance = consumerView(party, false);
     const consumerViewWithFlagsInstance = consumerView(party, true);
@@ -372,8 +326,6 @@ export const customViews = (userId, party, role) => {
             streamRequestsViewInstance,
             licenseProposalViewInstance,
             licenseViewInstance,
-            reviewsViewInstance,
-            qualityAssuranceInstance,
             complaintsDisputedStreamInstance,
             currentTimeView
         };
@@ -535,9 +487,9 @@ function showKycObservationValue(observation) {
     } else if (observation.value.Screening) {
         return `${observation.value.Screening.ofac}`;
     } else if (observation.value.Research) {
-        const cip = observation.value.Research.researchData.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCip.Data.value.tin;
-        const cdd = observation.value.Research.researchData.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCdd.Data.value.revenue;
-        const screening = observation.value.Research.researchData.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchScreening.Data.value.ofac;
+        const cip = observation.value.Research.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchCip.Data.value.tin;
+        const cdd = observation.value.Research.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchCdd.Data.value.revenue;
+        const screening = observation.value.Research.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchScreening.Data.value.ofac;
         return `${cip}, ${cdd}, ${screening}`;
     } else {
         return "N/A";

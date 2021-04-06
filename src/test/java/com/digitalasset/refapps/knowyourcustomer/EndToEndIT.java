@@ -131,9 +131,9 @@ public class EndToEndIT {
     logger.debug("time is running");
 
     Research research = getResearchFor(BANK_1);
-    assertTrue(research.researchData.researchCip instanceof Data);
-    assertTrue(research.researchData.researchCdd instanceof NotAvailable);
-    assertTrue(research.researchData.researchScreening instanceof Data);
+    assertTrue(research.researchDataValue.researchCip instanceof Data);
+    assertTrue(research.researchDataValue.researchCdd instanceof NotAvailable);
+    assertTrue(research.researchDataValue.researchScreening instanceof Data);
     logger.debug("got research");
 
     PublisherConsumerRelationship.ContractId analystWithBank2 =
@@ -160,9 +160,9 @@ public class EndToEndIT {
 
     research = eventually(() -> getResearchFor(BANK_2));
     logger.debug("got other research");
-    assertTrue(research.researchData.researchCip instanceof Data);
-    assertTrue(research.researchData.researchCdd instanceof Data);
-    assertTrue(research.researchData.researchScreening instanceof Data);
+    assertTrue(research.researchDataValue.researchCip instanceof Data);
+    assertTrue(research.researchDataValue.researchCdd instanceof Data);
+    assertTrue(research.researchDataValue.researchScreening instanceof Data);
   }
 
   private void consumeInitialContracts() {

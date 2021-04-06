@@ -24,8 +24,6 @@ fromDablParties dablParties =
     cddProviderParty = party "CDD_Provider"
     screeningProviderParty = party "ScreeningProvider"
     kycAnalystParty = party "KYC_Analyst"
-    kycReviewerParty = party "KYC_Reviewer"
-    kycQAParty = party "KYC_QA"
     bank1Party = party "Bank1"
     bank2Party = party "Bank2"
   where
@@ -43,8 +41,6 @@ testFromDablPartiesCanConvert = do
       cddProvider = "CDD_Provider"
       screeningProvider = "ScreeningProvider"
       kycAnalyst = "KYC_Analyst"
-      kycReviewer = "KYC_Reviewer"
-      kycQA = "KYC_QA"
       bank1 = "Bank1"
       bank2 = "Bank2"
       expected =
@@ -54,14 +50,12 @@ testFromDablPartiesCanConvert = do
           cddProviderParty = party cddProvider
           screeningProviderParty = party screeningProvider
           kycAnalystParty = party kycAnalyst
-          kycReviewerParty = party kycReviewer
-          kycQAParty = party kycQA
           bank1Party = party bank1
           bank2Party = party bank2
       actual =
         fromDablParties $ map dablPartyFromText
           [ operator, cipProvider, cddProvider, screeningProvider,
-            kycAnalyst, kycReviewer, kycQA, bank1, bank2 ]
+            kycAnalyst, bank1, bank2 ]
   expected === actual
  where
   party name = fromSome $ partyFromText name

@@ -16,19 +16,14 @@ import Daml.Script
 
 setup : Script ()
 setup = do
-  let
-    analyst = getScriptParty "KYC_Analyst"
-    reviewer = getScriptParty "KYC_Reviewer"
+  let analyst = getScriptParty "KYC_Analyst"
   stream <- setupToMergeRawPublicationsOnEmptyDataStream
 
   let newObservation =
         Observation with
           label = reference
           time = appStartTime
-          value = Research with -- any observation value just to start the EmptyDataStream
-            reviewedBy = reviewer
-            verifiedByQA = True
-            researchData
+          value = Research dummyResearchData
 
   submit analyst $ exerciseCmd stream StartDataStream with newObservation
 
@@ -40,7 +35,7 @@ setup = do
       includeCDD = False
       includeScreening = True
 
-    researchData = ResearchData with
+    dummyResearchData = ResearchData with
       researchCip = Data $ createCIPData 1
       researchCdd = NotAvailable
       researchScreening = Data $ createScreeningData 1

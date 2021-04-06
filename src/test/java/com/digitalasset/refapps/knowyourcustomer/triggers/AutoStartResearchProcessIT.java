@@ -70,8 +70,6 @@ public class AutoStartResearchProcessIT extends TriggerTest {
             KYC_ANALYST, ResearchProcess.TEMPLATE_ID, ResearchProcess.ContractId::new);
     ResearchProcess researchProcess = ResearchProcess.fromValue(researchProcessWithId.record);
     assertEquals(KYC_ANALYST.getValue(), researchProcess.analyst);
-    assertEquals(KYC_REVIEWER.getValue(), researchProcess.reviewer);
-    assertEquals(KYC_QUALITYASSURANCE.getValue(), researchProcess.qualityAssurance);
 
     ledger.assertDidntHappen(
         BANK_1.getValue(),

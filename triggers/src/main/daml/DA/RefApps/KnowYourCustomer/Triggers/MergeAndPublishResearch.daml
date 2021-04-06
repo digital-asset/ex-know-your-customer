@@ -60,7 +60,8 @@ mergeAndPublishResearchDataRule party = do
   forA_
     researchResults
     (\(rrCid, rr) -> do
-      let observation = Observation rr.reference rr.time $ Research rr.researchData rr.reviewer rr.verifiedByQA
+      let research: ObservationValue = Research rr.researchData
+      let observation = Observation rr.reference rr.time research
       forA_ ownEmptyDataStreams (\(sCid, s) ->
         when (s.reference == rr.reference) $ do
           log $ "Starting stream: " <> show s

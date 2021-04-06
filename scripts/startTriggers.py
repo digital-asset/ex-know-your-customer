@@ -23,8 +23,6 @@ triggers_with_parties = [
     ("CDD_Provider", "DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger"),
     ("ScreeningProvider", "DA.RefApps.KnowYourCustomer.Triggers.AutoRegisterLicense:automaticLicenseRegistrarTrigger"),
     ("KYC_Analyst", "DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger"),
-    ("KYC_Reviewer", "DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger"),
-    ("KYC_QA", "DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger"),
     ("KYC_Analyst", "DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger"),
     ("Operator", "DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger"),
     ("CIP_Provider", "DA.RefApps.KnowYourCustomer.Triggers.Publisher:cipTrigger"),

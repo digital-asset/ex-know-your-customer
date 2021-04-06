@@ -31,8 +31,6 @@ setupToMergeRawPublicationsOnEmptyDataStream = do
   let
     operator = getScriptParty "Operator"
     analyst = getScriptParty "KYC_Analyst"
-    reviewer = getScriptParty "KYC_Reviewer"
-    qualityAssurance = getScriptParty "KYC_QA"
     bank1 = getScriptParty "Bank1"
 
   operator `submit`
@@ -42,7 +40,7 @@ setupToMergeRawPublicationsOnEmptyDataStream = do
       observers = [analyst]
 
   researchProcess <- setupRawPublicationsAndResearchProcess
-  createResearchResult researchProcess analyst reviewer qualityAssurance
+  createResearchResult researchProcess analyst
 
   stream <- createEmptyDataStream operator analyst bank1
   case stream of
@@ -63,12 +61,10 @@ setupToMergeRawPublicationsOnEmptyDataStream = do
       researchCdd = NotAvailable
       researchScreening = Data $ createScreeningData 1
 
-    createResearchResult researchProcess analyst reviewer qualityAssurance = do
-      reviewRequest <- submit analyst $ exerciseCmd researchProcess SendToReview with
+    createResearchResult researchProcess analyst = do
+      submit analyst $ exerciseCmd researchProcess SendToReview with
           time = addRelTime appStartTime (hours 1)
           researchData = researchData
-      qaRequest <- submit reviewer $ exerciseCmd reviewRequest ApproveReview
-      submit qualityAssurance $ exerciseCmd qaRequest ApproveVerified
 
     createEmptyDataStream operator analyst bank1 = do
       operatorRole <- operator `submit` createCmd OperatorRole with operator
