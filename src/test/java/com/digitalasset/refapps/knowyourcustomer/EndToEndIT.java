@@ -43,8 +43,6 @@ public class EndToEndIT {
 
   private final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
   private static final Path RELATIVE_MODEL_DAR_PATH = Paths.get("target/know-your-customer.dar");
-  private static final Path RELATIVE_TRIGGER_DAR_PATH =
-      Paths.get("target/know-your-customer-triggers.dar");
   private static final Party OPERATOR = new Party("Operator");
   private static final Party CIP_PROVIDER = new Party("CIP_Provider");
   private static final Party CDD_PROVIDER = new Party("CDD_Provider");
@@ -55,7 +53,7 @@ public class EndToEndIT {
   private static final Party KYC_REVIEWER = new Party("KYC_Reviewer");
   private static final Party KYC_QUALITY_ASSURANCE = new Party("KYC_QA");
   private static final Duration systemPeriodTime = Duration.ofSeconds(5);
-  private static Sandbox sandbox =
+  private static final Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_MODEL_DAR_PATH)
           .parties(
@@ -178,10 +176,6 @@ public class EndToEndIT {
         isStreamRequestBetween(KYC_ANALYST, CDD_PROVIDER),
         isStreamRequestBetween(KYC_ANALYST, SCREENING_PROVIDER),
         isStreamRequestBetween(BANK_1, KYC_ANALYST));
-  }
-
-  private Predicate<Publication> isPublishedBy(Party party) {
-    return x -> party.getValue().equals(x.publisher.party);
   }
 
   private Predicate<DataStreamRequest> isStreamRequestBetween(Party consumer, Party publisher) {
