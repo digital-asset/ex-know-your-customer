@@ -4,8 +4,7 @@
 
 This application demonstrates the lifecycle of KYC (Know Your Customer) data subscriptions.
 Financial institutions can acquire licenses to subscribe to data streams, periodically receiving tailored research on their customer.
-The research is configurable, and the institution can select the components of interest to include in the research, which is
-then verified both by a reviewer and by quality assurance.
+The research is configurable, and the institution can select the components of interest to include in the research.
 Until the license expires, they can observe live data streaming or report issues such as performance outage or stale data streams.
 
 ## Getting Started
@@ -70,8 +69,6 @@ make clean build
     - CDD_Provider
     - ScreeningProvider
     - KYC_Analyst
-    - KYC_Reviewer
-    - KYC_QA
     - Bank1
     - Bank2
     - Operator
@@ -112,12 +109,6 @@ DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger
 DA.RefApps.KnowYourCustomer.Triggers.AutoStartResearch:autoStartResearchProcessTrigger
 DA.RefApps.KnowYourCustomer.Triggers.MergeAndPublishResearch:mergeAndPublishResearchDataTrigger
 
-KYC_Reviewer:
-DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoReviewTrigger
-
-KYC_QA:
-DA.RefApps.KnowYourCustomer.Triggers.AutoReviewAndVerification:autoVerifyTrigger
-
 Operator:
 DA.RefApps.KnowYourCustomer.Triggers.TimeUpdater:timeUpdaterTrigger
 ```
@@ -144,9 +135,7 @@ The publisher streams some data, observable by its consumers via their licenses.
 | :----------------: | :---
 |       Bank         | Financial institution buying research on their customers. There are two banks: _Bank1_ and _Bank2_.
 |       Provider     | Provides raw customer data, initially read from a CSV file. There are three parties in this role: _CDD_Provider_, _CIP_Provider_, and _ScreeningProvider_.
-|       Analyst      | Collates raw research data streams, sends them through the review process (_Reviewer_ and _QA_), and publishes the results for the banks.
-|       Reviewer     | Can review research composed by the _Analyst_.
-|       QA           | The gate keeper before publishing research. In most cases it simply accepts the review done by the _Reviewer_, but occasionally performs additional validation.
+|       Analyst      | Collates raw research data streams and publishes the results for the banks.
 |       Operator     | Represents the infrastructure. Operates model clock, builds relationships between parties, etc.
 
 ## Running the Application
