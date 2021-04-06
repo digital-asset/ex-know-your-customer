@@ -21,7 +21,6 @@ import da.refapps.knowyourcustomer.types.observationvalue.Research;
 import da.refapps.knowyourcustomer.types.optionaldata.Data;
 import da.refapps.knowyourcustomer.types.optionaldata.NotAvailable;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -50,7 +49,6 @@ public class PublishResearchOnEmptyDataStreamIT extends TriggerTest {
     return KYC_ANALYST;
   }
 
-  @Ignore
   @Test
   public void testReviewedResearchIsPublishedOnEmptyDataStream() {
     doTestReviewedResearchIsPublished(sandbox, 1);

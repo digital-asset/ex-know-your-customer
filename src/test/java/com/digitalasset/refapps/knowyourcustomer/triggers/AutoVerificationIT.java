@@ -22,7 +22,6 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -52,7 +51,6 @@ public class AutoVerificationIT extends TriggerTest {
     return KYC_QUALITYASSURANCE;
   }
 
-  @Ignore
   @Test
   public void researchResultsAreVerifiedOnDaysDivisibleByThree() throws IOException {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
@@ -85,7 +83,6 @@ public class AutoVerificationIT extends TriggerTest {
         ContractCreated.expectContract(ResearchResult.TEMPLATE_ID, "{IGNORE}"));
   }
 
-  @Ignore
   @Test
   public void researchResultsAreNotVerifiedOnDaysNotDivisibleByThree() throws IOException {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

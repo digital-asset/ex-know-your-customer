@@ -41,7 +41,6 @@ public class AutoRegisterIT extends TriggerTest {
     return CIP_PROVIDER;
   }
 
-  @Ignore
   @Test
   public void testAutoRegister() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();

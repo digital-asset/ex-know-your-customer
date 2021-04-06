@@ -38,7 +38,6 @@ public class AutoAcceptIT extends TriggerTest {
     return KYC_ANALYST;
   }
 
-  @Ignore
   @Test
   public void testAutoAccept() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
