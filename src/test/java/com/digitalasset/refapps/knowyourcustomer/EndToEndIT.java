@@ -70,8 +70,8 @@ public class EndToEndIT {
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
           .sandboxWaitTimeout(Duration.ofSeconds(90))
-          .observationTimeout(
-              Duration.ofSeconds(10)) // because we have a lot of triggers causing the test flaky
+          .moduleAndScript("DA.RefApps.KnowYourCustomer.MarketSetupScript", "setupMarketForSandbox")
+          .observationTimeout(Duration.ofSeconds(10))
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
@@ -87,12 +87,10 @@ public class EndToEndIT {
     File errLog = new File("integration-marketSetupAndTriggers.err.log");
     marketSetupAndTriggers =
         new ProcessBuilder()
-            .command(
-                "scripts/startTriggers.sh",
-                "localhost",
-                Integer.toString(sandbox.getSandboxPort()),
-                RELATIVE_MODEL_DAR_PATH.toString(),
-                RELATIVE_TRIGGER_DAR_PATH.toString())
+            // TODO call launcher script instead to integrate that to this test too, but:
+            // figure out why the trigger service is not properly killed then (a dangling java
+            // process stays)
+            .command("scripts/startTriggers.py", Integer.toString(sandbox.getSandboxPort()))
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();
