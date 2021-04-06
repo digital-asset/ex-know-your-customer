@@ -124,26 +124,21 @@ public class EndToEndIT {
   public void endToEndIT() throws InvalidProtocolBufferException, InterruptedException {
     logger.debug("started");
 
-    Thread.sleep(30000);
-
     logger.debug("consuming...");
     consumeInitialContracts();
     logger.debug("consumed");
 
-    Thread.sleep(2000);
     continueTime();
     logger.debug("waiting a period to update time");
     Thread.sleep(systemPeriodTime.toMillis());
     logger.debug("time is running");
 
-    Thread.sleep(2000);
     Research research = getResearchFor(BANK_1);
     assertTrue(research.researchData.researchCip instanceof Data);
     assertTrue(research.researchData.researchCdd instanceof NotAvailable);
     assertTrue(research.researchData.researchScreening instanceof Data);
     logger.debug("got research");
 
-    Thread.sleep(3000);
     PublisherConsumerRelationship.ContractId analystWithBank2 =
         ledger.getCreatedContractId(
             BANK_2,
@@ -154,7 +149,6 @@ public class EndToEndIT {
         analystWithBank2.exerciseRequestStandardAnnualStream(
             new ObservationReference("ACME", true, true, true)));
 
-    Thread.sleep(3000);
     DataStreamRequest.ContractId streamRequest =
         ledger.getCreatedContractId(
             KYC_ANALYST, DataStreamRequest.TEMPLATE_ID, DataStreamRequest.ContractId::new);
@@ -162,13 +156,11 @@ public class EndToEndIT {
         KYC_ANALYST,
         streamRequest.exerciseDataStreamRequest_Propose(new SubscriptionFee(BigDecimal.TEN)));
 
-    Thread.sleep(3000);
     DataLicenseProposal.ContractId licenseProposal =
         ledger.getCreatedContractId(
             BANK_2, DataLicenseProposal.TEMPLATE_ID, DataLicenseProposal.ContractId::new);
     ledger.exerciseChoice(BANK_2, licenseProposal.exerciseDataLicenseProposal_Accept());
 
-    Thread.sleep(3000);
     research = eventually(() -> getResearchFor(BANK_2));
     logger.debug("got other research");
     assertTrue(research.researchData.researchCip instanceof Data);
