@@ -34,7 +34,6 @@ template DataLicense
     controller licenseData.publisher.party can
       DataLicense_ClaimRegistered: ContractId RegisteredDataLicense
         do
-          began <- fetchTime licenseData.operator
           create RegisteredDataLicense with ..
 
 template RegisteredDataLicense
