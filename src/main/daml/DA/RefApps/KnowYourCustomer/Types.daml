@@ -65,11 +65,7 @@ data ObservationValue =
     CIP CipData
   | CDD CddData
   | Screening ScreeningData
-  | Research
-      with
-        researchData: ResearchData
-        reviewedBy: Party
-        verifiedByQA: Bool
+  | Research ResearchData
   deriving (Eq, Show)
 
 data Observation = Observation

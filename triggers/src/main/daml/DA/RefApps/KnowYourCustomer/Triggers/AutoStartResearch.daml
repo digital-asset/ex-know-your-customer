@@ -17,7 +17,6 @@ import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.DataStream
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.KycExtension
-import DA.List (head)
 
 -- This trigger looks for Research Licenses (which are the results of
 -- the following process: request - propose price - accept) and
@@ -33,16 +32,12 @@ autoStartResearchProcessTrigger = Trigger
     , registeredTemplate @PublisherConsumerRelationship
     , registeredTemplate @DataLicense
     , registeredTemplate @PublisherRole
-    , registeredTemplate @ReviewerRole
-    , registeredTemplate @QualityAssuranceRole
     ]
   , heartbeat = None
   }
 
 startResearchProcess : Party -> TriggerA () ()
 startResearchProcess actualParty = do
-  reviewer <- getReviewer
-  qualityAssurance <- getQA
   licenses <- query @DataLicense
   publisherRoles <- query @PublisherRole
   let researchLicensesToRegister = filter (\(_, l) -> l.licenseData.publisher.party == actualParty) licenses
@@ -60,8 +55,6 @@ startResearchProcess actualParty = do
           emitCommands [exerciseCmd ourPublisherRoleCid RegisterLicense with licenseId = lCid] [toAnyContractId lCid]
           dedupCreate ResearchProcess with
             analyst = actualParty
-            reviewer = reviewer
-            qualityAssurance = qualityAssurance
             reference = l.licenseData.reference
             lastChecked = None
     [] ->
@@ -74,13 +67,3 @@ startingDate = addRelTime appStartTime (hours 1)
 
 endingDate : Time
 endingDate = addRelTime appStartTime (days 500)
-
-getReviewer : TriggerA () Party
-getReviewer = do
-  (_, reviewerRole) <- head <$> query @ReviewerRole
-  pure reviewerRole.reviewer
-
-getQA : TriggerA () Party
-getQA = do
-  (_, qualityAssuranceRole) <- head <$> query @QualityAssuranceRole
-  pure qualityAssuranceRole.qualityAssurance

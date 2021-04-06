@@ -6,7 +6,6 @@
 module DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoStartResearchTestSetup where
 
 import DA.RefApps.KnowYourCustomer.Utils
-import DA.RefApps.KnowYourCustomer.KycExtension
 import DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoRegisterTestSetup qualified as AutoRegisterTestSetup
 
 import Daml.Script
@@ -15,12 +14,4 @@ setup : Script ()
 setup = do
     let bank1 = getScriptParty "Bank1"
         kycAnalystProviderParty = getScriptParty "KYC_Analyst"
-        reviewer = getScriptParty "KYC_Reviewer"
-        qualityAssurance = getScriptParty "KYC_QA"
-    reviewer `submit` createCmd ReviewerRole with
-        reviewer = reviewer
-        kycAnalyst = kycAnalystProviderParty
-    qualityAssurance `submit` createCmd QualityAssuranceRole with
-        qualityAssurance = qualityAssurance
-        kycAnalyst = kycAnalystProviderParty
     AutoRegisterTestSetup.setupConsumerProviderHierarchyWithDataLicense bank1 kycAnalystProviderParty

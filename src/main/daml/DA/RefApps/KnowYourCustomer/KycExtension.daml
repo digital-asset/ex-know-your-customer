@@ -7,97 +7,30 @@ module DA.RefApps.KnowYourCustomer.KycExtension where
 
 import DA.RefApps.KnowYourCustomer.Types
 
-template ReviewerRole
-  with
-    reviewer : Party
-    kycAnalyst : Party
-  where
-    signatory reviewer
-    observer kycAnalyst
-
-    key reviewer : Party
-    maintainer key
-
-template QualityAssuranceRole
-  with
-    qualityAssurance : Party
-    kycAnalyst : Party
-  where
-    signatory qualityAssurance
-    observer kycAnalyst
-
-    key qualityAssurance : Party
-    maintainer key
-
 template ResearchProcess
   with
     analyst : Party
-    reviewer: Party
-    qualityAssurance: Party
     reference: ObservationReference
     lastChecked : Optional Time
   where
     signatory analyst
     controller analyst can
-      SendToReview : ContractId ReviewRequest
+      SendToReview : ContractId ResearchResult
         with
           time: Time
           researchData: ResearchData
         do
-          create ReviewRequest with ..
+          create ResearchResult with ..
 
-template ReviewRequest
+template ResearchResult
   with
     analyst : Party
-    reviewer: Party
-    qualityAssurance: Party
     time: Time
     researchData: ResearchData
     reference: ObservationReference
     lastChecked : Optional Time
   where
     signatory analyst
-    controller reviewer can
-      ApproveReview : ContractId QualityAssuranceRequest
-        do
-          create QualityAssuranceRequest with ..
-
-      DeclineReview : ()
-        do
-          pure ()
-
-template QualityAssuranceRequest
-  with
-    analyst : Party
-    qualityAssurance: Party
-    reviewer: Party
-    time: Time
-    researchData: ResearchData
-    reference: ObservationReference
-    lastChecked : Optional Time
-  where
-    signatory analyst, reviewer
-    controller qualityAssurance can
-      ApproveVerified : ContractId ResearchResult
-        do
-          create ResearchResult with verifiedByQA = True, ..
-
-      ApproveNotVerified : ContractId ResearchResult
-        do
-          create ResearchResult with verifiedByQA = False, ..
-
-template ResearchResult
-  with
-    analyst : Party
-    qualityAssurance: Party
-    reviewer: Party
-    verifiedByQA: Bool -- VerificaitonResult type
-    time: Time
-    researchData: ResearchData
-    reference: ObservationReference
-    lastChecked : Optional Time
-  where
-    signatory analyst, reviewer, qualityAssurance
 
     controller analyst can
       MarkProcessed : ContractId ResearchProcess

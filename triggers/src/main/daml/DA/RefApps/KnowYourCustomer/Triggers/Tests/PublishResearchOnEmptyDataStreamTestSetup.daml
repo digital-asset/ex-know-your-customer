@@ -64,11 +64,9 @@ setupToMergeRawPublicationsOnEmptyDataStream = do
       researchScreening = Data $ createScreeningData 1
 
     createResearchResult researchProcess analyst reviewer qualityAssurance = do
-      reviewRequest <- submit analyst $ exerciseCmd researchProcess SendToReview with
+      submit analyst $ exerciseCmd researchProcess SendToReview with
           time = addRelTime appStartTime (hours 1)
           researchData = researchData
-      qaRequest <- submit reviewer $ exerciseCmd reviewRequest ApproveReview
-      submit qualityAssurance $ exerciseCmd qaRequest ApproveVerified
 
     createEmptyDataStream operator analyst bank1 = do
       operatorRole <- operator `submit` createCmd OperatorRole with operator
