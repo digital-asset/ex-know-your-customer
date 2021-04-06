@@ -115,7 +115,7 @@ public class EndToEndIT {
 
   @After
   public void tearDown() {
-    // apparently (not sure) destroyForcibly() sends SIGKILL, while destroy() sends SIGTERM
+    // Use destroy() to allow subprocess cleanup.
     marketSetupAndTriggers.destroy();
   }
 
