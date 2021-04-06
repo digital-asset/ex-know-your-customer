@@ -9,8 +9,6 @@ import static com.digitalasset.refapps.knowyourcustomer.assertions.Assert.assert
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
-import da.refapps.knowyourcustomer.kycextension.QualityAssuranceRequest;
-import da.refapps.knowyourcustomer.kycextension.ReviewRequest;
 import da.refapps.knowyourcustomer.publication.Publication;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -43,9 +41,6 @@ public class MergeAndSendToReviewIT extends TriggerTest {
   @Test
   public void testPublicationsAreMergedIntoAResearchAndSentForReview() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
-    assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, 1, ReviewRequest.TEMPLATE_ID);
     assertContractsCreatedExactlyNTimes(KYC_ANALYST, ledger, 2, Publication.TEMPLATE_ID);
-    assertContractsCreatedExactlyNTimes(
-        KYC_ANALYST, ledger, 0, QualityAssuranceRequest.TEMPLATE_ID);
   }
 }
