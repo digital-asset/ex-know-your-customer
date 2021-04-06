@@ -262,8 +262,6 @@ export const customViews = (userId, party, role) => {
             currentTimeView
         };
     }
-    const reviewsViewInstance = reviewsView()
-    const qualityAssuranceInstance = qualityAssuranceView()
 
     const publisherDataViewInstance = publisherDataView(party, false);
     const publisherProvidedViewInstance = publisherProvidedView(party);
@@ -328,8 +326,6 @@ export const customViews = (userId, party, role) => {
             streamRequestsViewInstance,
             licenseProposalViewInstance,
             licenseViewInstance,
-            reviewsViewInstance,
-            qualityAssuranceInstance,
             complaintsDisputedStreamInstance,
             currentTimeView
         };
@@ -491,9 +487,9 @@ function showKycObservationValue(observation) {
     } else if (observation.value.Screening) {
         return `${observation.value.Screening.ofac}`;
     } else if (observation.value.Research) {
-        const cip = observation.value.Research.researchData.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCip.Data.value.tin;
-        const cdd = observation.value.Research.researchData.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchCdd.Data.value.revenue;
-        const screening = observation.value.Research.researchData.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchData.researchScreening.Data.value.ofac;
+        const cip = observation.value.Research.researchCip.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchCip.Data.value.tin;
+        const cdd = observation.value.Research.researchCdd.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchCdd.Data.value.revenue;
+        const screening = observation.value.Research.researchScreening.hasOwnProperty("NotAvailable") ? "N/A" : observation.value.Research.researchScreening.Data.value.ofac;
         return `${cip}, ${cdd}, ${screening}`;
     } else {
         return "N/A";
