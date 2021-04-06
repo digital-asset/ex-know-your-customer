@@ -9,7 +9,6 @@ import DA.Time
 import DA.TimeService.TimeService
 
 import DA.RefApps.KnowYourCustomer.Types
-import DA.RefApps.KnowYourCustomer.Publication
 
 data LicenseData =
       LicenseData with
@@ -32,12 +31,6 @@ template DataLicense
     key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
     maintainer key._1.party
 
-    controller licenseData.consumer.party can
-      DataLicense_ClaimNonPerformance: ContractId NonPerformance
-        do
-          claimed <- fetchTime licenseData.operator
-          create NonPerformance with licenseData = licenseData, claimed
-
     controller licenseData.publisher.party can
       DataLicense_ClaimRegistered: ContractId RegisteredDataLicense
         do
@@ -52,12 +45,6 @@ template RegisteredDataLicense
 
     key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
     maintainer key._1.party
-
-    controller licenseData.consumer.party can
-      RegisteredDataLicense_ClaimNonPerformance: ContractId NonPerformance
-        do
-          claimed <- fetchTime licenseData.operator
-          create NonPerformance with licenseData = licenseData, claimed
 
     controller licenseData.publisher.party can
       RegisteredDataLicense_BeginStreaming: ContractId LiveStreamLicense
@@ -77,15 +64,6 @@ template LiveStreamLicense
     key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
     maintainer key._1.party
 
-    controller licenseData.consumer.party can
-      nonconsuming ClaimStale: ContractId StalePublication
-        with publicationId: ContractId Publication
-        do
-          publication <- fetch publicationId
-          claimed <- fetchTime licenseData.operator
-          create StalePublication
-            with ..
-
     controller licenseData.publisher.party can
       ExpireLicense: ()
         do
@@ -96,43 +74,3 @@ template LiveStreamLicense
 
 isLicenseExpired : LicenseData -> Time -> Bool
 isLicenseExpired license currentTime = license.ending <= currentTime
-
-isPublicationStale : Publication -> LicenseData -> Time -> Bool
-isPublicationStale publication licenseData currentTime =
-  (addRelTime publication.published licenseData.stale) < currentTime
-
-template StalePublication
-  with
-    licenseData: LicenseData
-    claimed: Time
-    publicationId: ContractId Publication
-    publication: Publication
-  where
-    signatory licenseData.publisher.party
-
-    observer licenseData.publisher.party
-
-    ensure publication.observation.label == licenseData.reference
-      && publication.publisher == licenseData.publisher
-      && publication.consumer == licenseData.consumer
-      && not (isLicenseExpired licenseData claimed)
-      && isPublicationStale publication licenseData claimed
-
-    controller licenseData.consumer.party can
-      DismissStalePublication: ()
-        do return ()
-
-template NonPerformance
-  with
-    licenseData: LicenseData
-    claimed: Time
-  where
-    signatory licenseData.consumer.party
-
-    observer licenseData.publisher.party
-
-    ensure claimed > licenseData.starting
-
-    controller licenseData.consumer.party can
-      DismissNonPerformance: ()
-        do return ()
