@@ -85,6 +85,7 @@ public class EndToEndIT {
     // Therefore trigger has to be configured at the point where this can be guaranteed.
     File log = new File("integration-marketSetupAndTriggers.log");
     File errLog = new File("integration-marketSetupAndTriggers.err.log");
+    logger.debug("starting triggers");
     marketSetupAndTriggers =
         new ProcessBuilder()
             // TODO call launcher script instead to integrate that to this test too, but:
@@ -95,6 +96,7 @@ public class EndToEndIT {
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();
     ledger = sandbox.getLedgerAdapter();
+    logger.debug("waiting for the whole system to setup");
     waitForTheWholeSystemToSetup();
     timeManager = getTimeManager();
   }
@@ -166,6 +168,7 @@ public class EndToEndIT {
 
     Thread.sleep(3000);
     research = eventually(() -> getResearchFor(BANK_2));
+    logger.debug("got other research");
     assertTrue(research.researchData.researchCip instanceof Data);
     assertTrue(research.researchData.researchCdd instanceof Data);
     assertTrue(research.researchData.researchScreening instanceof Data);
