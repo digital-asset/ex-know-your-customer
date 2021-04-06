@@ -132,7 +132,9 @@ public class EndToEndIT {
 
     Thread.sleep(2000);
     continueTime();
-    logger.debug("continued");
+    logger.debug("waiting a period to update time");
+    Thread.sleep(systemPeriodTime.toMillis());
+    logger.debug("time is running");
 
     Thread.sleep(2000);
     Research research = getResearchFor(BANK_1);
