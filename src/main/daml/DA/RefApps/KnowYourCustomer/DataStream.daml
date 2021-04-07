@@ -8,7 +8,6 @@ module DA.RefApps.KnowYourCustomer.DataStream where
 import DA.Foldable
 import DA.TimeService.TimeService
 import DA.Action
-import Daml.Script
 
 import DA.RefApps.KnowYourCustomer.Types
 import DA.RefApps.KnowYourCustomer.Publication
@@ -48,12 +47,6 @@ template EmptyDataStream
               let lookupKey = (publisher, consumer, reference)
               oldPublicationIdOpt <- lookupByKey @Publication lookupKey
               (dataLicenseId, dataLicense) <- fetchByKey @RegisteredDataLicense lookupKey
-              isExpired <- checkIsExpired operator dataLicense.licenseData
-              let expirationErr = "Cannot start data stream: license is expired, reference: " <>
-                                    show newObservation.label <>
-                                    ", license ID: " <>
-                                    show dataLicense
-              assertMsg expirationErr $ not isExpired
               exercise dataLicenseId RegisteredDataLicense_BeginStreaming
               case oldPublicationIdOpt of
                     Some oldPublicationId -> do
@@ -102,10 +95,8 @@ template DataStream
           newValue: ObservationValue
         do
           let newObservation = observation with time, value = newValue
-          liveAndExpired <- forA consumers $ getLiveOrExpired operator publisher observation.label
-          let (live, expired) = partition isLive liveAndExpired
+          live <- forA consumers $ getLiveOrExpired operator publisher observation.label
           forA_ live $ republish newObservation
-          forA_ expired expire
           let newConsumers = map liveConsumer live
           currentTime <- fetchTime operator
           create this with observation = newObservation, published = currentTime, lastUpdated = currentTime, consumers = newConsumers
@@ -113,61 +104,23 @@ template DataStream
       UpdateLicenses: ContractId DataStream
         do
           currentTime <- fetchTime operator
-          liveAndExpired <- forA consumers $ getLiveOrExpired operator publisher observation.label
-          let (live, expired) = partition isLive liveAndExpired
-          forA_ expired expire
+          live <- forA consumers $ getLiveOrExpired operator publisher observation.label
           let newConsumers = map liveConsumer live
           create this with consumers = newConsumers, lastUpdated = currentTime
 
-data LiveOrExpired =
-    Live {
-      livePublication : ContractId Publication,
-      liveConsumer : Consumer
-    } |
-    Expired {
-      expiredPublication : ContractId Publication,
-      expiredLicense : ContractId LiveStreamLicense
-    } deriving (Show)
+data Live = Live with
+    livePublication : ContractId Publication
+    liveConsumer : Consumer
+  deriving (Show)
 
-republish : Observation -> LiveOrExpired -> Update ()
+republish : Observation -> Live -> Update ()
 republish newObservation (Live oldPublicationId consumer) =
   void $ exercise oldPublicationId Republish with newObservation
-republish _ _ = error "Republish called for Expired Publication."
-
-expire : LiveOrExpired -> Update ()
-expire e@(Expired oldPublicationId licenseKey) = do
-  archive oldPublicationId
-  exercise licenseKey ExpireLicense
-expire _ = error "Expire called for Live Publication."
-
-isLive : LiveOrExpired -> Bool
-isLive (Live _ _) = True
-isLive _ = False
 
 getLiveOrExpired
-  : Party -> Publisher -> ObservationReference -> Consumer -> Update LiveOrExpired
+  : Party -> Publisher -> ObservationReference -> Consumer -> Update Live
 getLiveOrExpired operator publisher observationLabel consumer = do
-  (licenseKey, license) <- fetchByKey @LiveStreamLicense lookupKey
   (oldPublicationId, _) <- fetchByKey @Publication lookupKey
-  isExpired <- checkIsExpired' license
-  if isExpired
-    then
-      pure $ Expired oldPublicationId licenseKey
-    else
-      pure $ Live oldPublicationId consumer
+  pure $ Live oldPublicationId consumer
  where
   lookupKey = (publisher, consumer, observationLabel)
-  checkIsExpired' (LiveStreamLicense licenseData _began) =
-      checkIsExpired operator licenseData
-
-checkIsExpired : Party -> LicenseData -> Update Bool
-checkIsExpired operator licenseData = do
-  currentTime <- fetchTime operator
-  pure $ isLicenseExpired licenseData currentTime
-
-checkIsExpiredScript : Party -> Party -> LicenseData -> Script Bool
-checkIsExpiredScript submitter operator licenseData = do
-  currentTime <- submit submitter do
-    exerciseByKeyCmd @CurrentTime operator (GetCurrentTime submitter)
-  pure $ isLicenseExpired licenseData currentTime
-

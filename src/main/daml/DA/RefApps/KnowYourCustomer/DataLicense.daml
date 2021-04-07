@@ -16,7 +16,6 @@ data LicenseData =
         consumer: Consumer
         reference: ObservationReference
         starting: Time
-        ending: Time
         stale: RelTime
         price: SubscriptionFee
         operator: Party
@@ -58,18 +57,5 @@ template LiveStreamLicense
   where
     signatory licenseData.publisher.party, licenseData.consumer.party
 
-    ensure licenseData.ending > began
-
     key (licenseData.publisher, licenseData.consumer, licenseData.reference): PublicationKey
     maintainer key._1.party
-
-    controller licenseData.publisher.party can
-      ExpireLicense: ()
-        do
-          now <- fetchTime licenseData.operator
-          let message = "Expiring license. Ending at: " <> show licenseData.ending
-                     <> ", current time is: " <> show now
-          assertMsg message (isLicenseExpired licenseData now)
-
-isLicenseExpired : LicenseData -> Time -> Bool
-isLicenseExpired license currentTime = license.ending <= currentTime

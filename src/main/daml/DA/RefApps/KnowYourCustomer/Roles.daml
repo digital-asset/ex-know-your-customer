@@ -136,7 +136,6 @@ template DataLicenseProposal
     consumer: Consumer
     reference: ObservationReference
     starting: Time
-    ending: Time
     stale: RelTime
     price : SubscriptionFee
     operator: Party
@@ -151,7 +150,6 @@ template DataLicenseProposal
                     consumer
                     reference
                     starting
-                    ending
                     stale
                     price
                     operator
