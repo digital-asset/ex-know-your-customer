@@ -22,21 +22,21 @@ createRelationship operator operatorRole publisher consumer = do
   return $ PublisherRelationship relationship publisherRole
 
 createDataStream : Party -> Party -> PublisherRelationship ->
-                   ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
+                   ObservationReference -> Time -> Int -> SubscriptionFee ->
                    Script SomeDataStream
-createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
+createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting staleHours price = do
   request <- consumer `submit` exerciseCmd relationship RequestStream
-    with reference, starting, ending, staleHours
+    with reference, starting, staleHours
   proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
   license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
   publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license
 
 createDataStream' : Party -> Party -> PublisherRelationship ->
-                   ObservationReference -> Time -> Time -> Int -> SubscriptionFee ->
+                   ObservationReference -> Time -> Int -> SubscriptionFee ->
                    Script SomeDataStream
-createDataStream' publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours price = do
+createDataStream' publisher consumer (PublisherRelationship relationship pubRole) reference starting staleHours price = do
   request <- consumer `submit` exerciseCmd relationship RequestStream
-    with reference, starting, ending, staleHours
+    with reference, starting, staleHours
   proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
   license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
   publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license

@@ -71,8 +71,7 @@ setupToMergeRawPublicationsOnEmptyDataStream = do
       relation <- createRelationship operator operatorRole analyst bank1
       let
         starting = addRelTime appStartTime (hours 1)
-        ending = addRelTime appStartTime (days 1)
         staleHours = 3
       createDataStream'
         analyst bank1 relation
-        reference starting ending staleHours (SubscriptionFee 10.0)
+        reference starting staleHours (SubscriptionFee 10.0)

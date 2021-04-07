@@ -95,7 +95,7 @@ template DataStream
           newValue: ObservationValue
         do
           let newObservation = observation with time, value = newValue
-          live <- forA consumers $ getLiveOrExpired operator publisher observation.label
+          live <- forA consumers $ getLive operator publisher observation.label
           forA_ live $ republish newObservation
           let newConsumers = map liveConsumer live
           currentTime <- fetchTime operator
@@ -104,7 +104,7 @@ template DataStream
       UpdateLicenses: ContractId DataStream
         do
           currentTime <- fetchTime operator
-          live <- forA consumers $ getLiveOrExpired operator publisher observation.label
+          live <- forA consumers $ getLive operator publisher observation.label
           let newConsumers = map liveConsumer live
           create this with consumers = newConsumers, lastUpdated = currentTime
 
@@ -117,9 +117,9 @@ republish : Observation -> Live -> Update ()
 republish newObservation (Live oldPublicationId consumer) =
   void $ exercise oldPublicationId Republish with newObservation
 
-getLiveOrExpired
+getLive
   : Party -> Publisher -> ObservationReference -> Consumer -> Update Live
-getLiveOrExpired operator publisher observationLabel consumer = do
+getLive operator publisher observationLabel consumer = do
   (oldPublicationId, _) <- fetchByKey @Publication lookupKey
   pure $ Live oldPublicationId consumer
  where

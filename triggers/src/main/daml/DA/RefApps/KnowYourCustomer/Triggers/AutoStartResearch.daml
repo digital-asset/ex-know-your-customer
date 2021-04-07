@@ -64,6 +64,3 @@ startResearchProcess actualParty = do
 
 startingDate : Time
 startingDate = addRelTime appStartTime (hours 1)
-
-endingDate : Time
-endingDate = addRelTime appStartTime (days 500)

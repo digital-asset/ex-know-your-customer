@@ -24,7 +24,6 @@ import DA.RefApps.KnowYourCustomer.Dabl
 initialize : KycParties -> Script MarketSetupData
 initialize parties = do
   let starting = addRelTime appStartTime (hours 1)
-      ending = addRelTime appStartTime (days 366)
       staleHours = 25
       modelPeriodTime = hours 12
       reference = ObservationReference
@@ -90,10 +89,10 @@ initialize parties = do
   kycBank2Relation <- inviteConsumer parties.operator operatorRole parties.kycAnalystParty parties.bank2Party
 
   debug "Creating licenses"
-  cipStream <- createLicense parties.cipProviderParty parties.kycAnalystParty provider1kycRelation reference starting ending staleHours
-  cddStream <- createLicense parties.cddProviderParty parties.kycAnalystParty provider2kycRelation reference starting ending staleHours
-  screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting ending staleHours
-  kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting ending staleHours
+  cipStream <- createLicense parties.cipProviderParty parties.kycAnalystParty provider1kycRelation reference starting staleHours
+  cddStream <- createLicense parties.cddProviderParty parties.kycAnalystParty provider2kycRelation reference starting staleHours
+  screeningStream <- createLicense parties.screeningProviderParty parties.kycAnalystParty provider3kycRelation reference starting staleHours
+  kycStream <- createLicense parties.kycAnalystParty parties.bank1Party kycBank1Relation reference starting staleHours
 
   pure $ MarketSetupData cipStream cddStream screeningStream kycBank1Relation kycStream
 
@@ -179,12 +178,12 @@ inviteConsumer operator operatorRole publisher consumer = do
   pure relationship
 
 createLicense : Party -> Party -> PublisherRelationship ->
-                ObservationReference -> Time -> Time -> Int ->
+                ObservationReference -> Time -> Int ->
                 Script (ContractId DataLicense)
-createLicense publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours = do
+createLicense publisher consumer (PublisherRelationship relationship pubRole) reference starting staleHours = do
   debug $ "Creating license: publisher=" <> show publisher <> ", consumer=" <> show consumer
   request <- consumer `submit` exerciseCmd relationship RequestStream
-    with reference, starting, ending, staleHours
+    with reference, starting, staleHours
   proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price = subscriptionFee
   license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
   debug "Created license."

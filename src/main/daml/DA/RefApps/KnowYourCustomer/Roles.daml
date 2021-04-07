@@ -114,12 +114,10 @@ template DataStreamRequest
     publisher: Publisher
     reference: ObservationReference
     starting: Time
-    ending: Time
     stale: RelTime
   where
     signatory operator, consumer.party
     observer publisher.party
-    ensure starting < ending
 
     controller publisher.party can
       DataStreamRequest_Propose: ContractId DataLicenseProposal
@@ -176,14 +174,12 @@ template PublisherConsumerRelationship
           create DataStreamRequest with
             starting = appStartTime
             stale = hours 3
-            ending = addRelTime currentTime $ days 366
             ..
 
     controller consumer.party can
       nonconsuming RequestStandardStream: ContractId DataStreamRequest
         with
           reference: ObservationReference
-          ending: Time
         do
           create DataStreamRequest with
             starting = appStartTime
@@ -195,7 +191,6 @@ template PublisherConsumerRelationship
         with
           reference: ObservationReference
           starting: Time
-          ending: Time
           staleHours: Int
         do
           create DataStreamRequest with

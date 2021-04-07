@@ -5,7 +5,7 @@
 This application demonstrates the lifecycle of KYC (Know Your Customer) data subscriptions.
 Financial institutions can acquire licenses to subscribe to data streams, periodically receiving tailored research on their customer.
 The research is configurable, and the institution can select the components of interest to include in the research.
-Until the license expires, they can observe live data streaming or report issues such as performance outage or stale data streams.
+They can observe live data streaming or report issues such as performance outage or stale data streams.
 
 ## Getting Started
 

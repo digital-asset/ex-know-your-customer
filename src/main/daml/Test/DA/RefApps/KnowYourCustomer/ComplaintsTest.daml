@@ -20,7 +20,7 @@ import Test.DA.RefApps.KnowYourCustomer.RolesTest
 
 consumerCanStartDisputeAboutQuality : Script ()
 consumerCanStartDisputeAboutQuality = script do
-  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
+  (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, currentTimeCid, mdVendorParty, mdvStreamId, staleHours)
     <- roleSetup
 
   let

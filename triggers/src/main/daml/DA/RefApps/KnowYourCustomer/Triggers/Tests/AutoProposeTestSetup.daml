@@ -38,9 +38,8 @@ setupConsumerProviderHierarchy consumer provider = do
     PublisherRelationship cipProviderConsumerRelationship _ <- createRelationship operator operatorRole provider consumer
 
     debug "Creating data stream request"
-    consumer `submit` exerciseCmd cipProviderConsumerRelationship RequestStream with reference = someReference, starting, ending, staleHours
+    consumer `submit` exerciseCmd cipProviderConsumerRelationship RequestStream with reference = someReference, starting, staleHours
   where
     someReference = ObservationReference "something" True True True
     starting = addRelTime appStartTime (hours 1)
-    ending = addRelTime appStartTime (days 366)
     staleHours = 4

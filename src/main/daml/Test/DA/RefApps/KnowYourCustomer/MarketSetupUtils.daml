@@ -12,13 +12,13 @@ import DA.RefApps.KnowYourCustomer.DataLicense
 import DA.RefApps.KnowYourCustomer.Roles
 
 createDataStream : Party -> Party -> PublisherRelationship ->
-                   ObservationReference -> Time -> Time -> Int ->
+                   ObservationReference -> Time -> Int ->
                    Script (ContractId DataLicense)
-createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting ending staleHours = do
+createDataStream publisher consumer (PublisherRelationship relationship pubRole) reference starting staleHours = do
   let price = SubscriptionFee 10.000
   debug $ "Creating data stream: publisher=" <> show publisher <> ", consumer=" <> show consumer
   request <- consumer `submit` exerciseCmd relationship RequestStream
-    with reference, starting, ending, staleHours
+    with reference, starting, staleHours
   proposal <- publisher `submit` exerciseCmd request DataStreamRequest_Propose with price
   license <- consumer `submit` exerciseCmd proposal DataLicenseProposal_Accept
   stream <- publisher `submit` exerciseCmd pubRole RegisterLicense with licenseId = license

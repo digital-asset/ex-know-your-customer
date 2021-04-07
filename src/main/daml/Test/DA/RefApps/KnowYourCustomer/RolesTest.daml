@@ -21,7 +21,7 @@ roleSetup :
   Script (
     ObservationReference, Observation, Party, Party,
     PublisherRelationship,
-    Time, Time, ContractId CurrentTime, Party, ContractId EmptyDataStream, Int)
+    Time, ContractId CurrentTime, Party, ContractId EmptyDataStream, Int)
 roleSetup = script do
   operator <- allocateParty "Operator"
   kycAnalystParty <- allocateParty "KYC_Analyst"
@@ -46,9 +46,7 @@ roleSetup = script do
       includeCDD = True
       includeScreening = True
     starting = addRelTime now (hours 1)
-    ending = addRelTime now (days 1)
     staleHours = 3
-    afterExpiry = addRelTime ending (days 1)
     currentObservation =
       Observation with
         label = reference
@@ -57,7 +55,7 @@ roleSetup = script do
 
   mdvStream <- (createDataStream
     kycAnalystParty bankParty mdvCon1Relation
-    reference starting ending staleHours (SubscriptionFee 10.0))
+    reference starting staleHours (SubscriptionFee 10.0))
   mdvStreamId
     <- case mdvStream of
         EDS actualStreamId ->
@@ -65,7 +63,7 @@ roleSetup = script do
         _ ->
             error "There should have been an empty data stream."
 
-  pure (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, afterExpiry, currentTimeCid, kycAnalystParty, mdvStreamId, staleHours)
+  pure (reference, currentObservation, operator, bankParty, mdvCon1Relation, now, currentTimeCid, kycAnalystParty, mdvStreamId, staleHours)
 
 createCIP : Int -> ObservationValue
 createCIP id =
