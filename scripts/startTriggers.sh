@@ -6,15 +6,14 @@
 
 set -e
 
-if [ $# -lt 4 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT MODEL_DAR_FILE TRIGGER_DAR_FILE"
+if [ $# -lt 3 ]; then
+    echo "${0} SANDBOX_HOST SANDBOX_PORT MODEL_DAR_FILE"
     exit 1
 fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
 MODEL_DAR_FILE="${3}"
-TRIGGER_DAR_FILE="${4}"
 
 daml script \
     --wall-clock-time \
