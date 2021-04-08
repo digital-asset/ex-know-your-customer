@@ -44,6 +44,14 @@ def start_trigger_service_in_background(dar, sandbox_port = DEFAULT_SANDBOX_PORT
          "--wall-clock-time", "--dar", dar, ])
 
 
+def run_script(dar, script_name, sandbox_port = DEFAULT_SANDBOX_PORT):
+    logger.debug("Running script...")
+    return subprocess.run([
+        "daml", "script", "--ledger-host", "localhost", "--ledger-port", f'{sandbox_port}', "--dar", dar,
+        "--script-name", script_name
+    ])
+
+
 def kill_background_process(process):
     logger.debug("Killing subprocess...")
     try:
