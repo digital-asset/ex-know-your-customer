@@ -8,9 +8,9 @@ set -e
 
 if [ $# -lt 1 ]
 then
-  SANDBOX_HOST=6865
+  SANDBOX_PORT=6865
 else
-  SANDBOX_HOST="${1}"
+  SANDBOX_PORT="${1}"
 fi
 
 scripts/populate.py "$SANDBOX_PORT"
