@@ -2,11 +2,11 @@
  * Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.knowyourcustomer.triggers;
+package com.daml.product.refapps.knowyourcustomer.triggers;
 
 import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.utils.Trigger;
+import com.daml.product.refapps.utils.Trigger;
 import java.nio.file.Paths;
 import java.time.Duration;
 import org.junit.*;

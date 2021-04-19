@@ -2,9 +2,9 @@
  * Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.knowyourcustomer;
+package com.daml.product.refapps.knowyourcustomer;
 
-import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
+import static com.daml.product.refapps.utils.EventuallyUtil.eventually;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
