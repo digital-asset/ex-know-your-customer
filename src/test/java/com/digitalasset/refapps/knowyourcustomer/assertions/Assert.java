@@ -8,13 +8,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.daml.extensions.testing.comparator.ledger.ContractCreated;
+import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.ledger.javaapi.data.Command;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
 import com.daml.ledger.javaapi.data.Identifier;
 import com.daml.ledger.javaapi.data.Party;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
-import com.digitalasset.testing.comparator.ledger.ContractCreated;
-import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import java.util.List;
 import java.util.Optional;
 

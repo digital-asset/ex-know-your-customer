@@ -6,11 +6,11 @@ package com.digitalasset.refapps.knowyourcustomer.triggers;
 
 import static org.junit.Assert.assertEquals;
 
+import com.daml.extensions.testing.comparator.ledger.ContractCreated;
+import com.daml.extensions.testing.junit4.Sandbox;
+import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
+import com.daml.extensions.testing.utils.ContractWithId;
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.testing.comparator.ledger.ContractCreated;
-import com.digitalasset.testing.junit4.Sandbox;
-import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
-import com.digitalasset.testing.utils.ContractWithId;
 import da.refapps.knowyourcustomer.roles.DataLicenseProposal;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
