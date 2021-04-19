@@ -2,7 +2,7 @@
  * Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.utils;
+package com.daml.product.refapps.utils;
 
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;

@@ -2,7 +2,7 @@
  * Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.knowyourcustomer.triggers;
+package com.daml.product.refapps.knowyourcustomer.triggers;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,13 +11,14 @@ import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.extensions.testing.utils.ContractWithId;
 import com.daml.ledger.javaapi.data.Party;
-import da.refapps.knowyourcustomer.roles.DataLicenseProposal;
+import da.refapps.knowyourcustomer.datalicense.DataLicense;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
 
-public class AutoProposeIT extends TriggerTest {
+public class AutoAcceptIT extends TriggerTest {
+
   private static final Sandbox sandbox =
-      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoProposeTestSetup");
+      buildSandbox("DA.RefApps.KnowYourCustomer.Triggers.Tests.AutoAcceptTestSetup");
 
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
@@ -29,30 +30,29 @@ public class AutoProposeIT extends TriggerTest {
 
   @Override
   protected String getTriggerName() {
-    return "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoProposeTrigger";
+    return "DA.RefApps.KnowYourCustomer.Triggers.AutoProposeAndAccept:autoAcceptTrigger";
   }
 
   @Override
   protected Party getTriggerParty() {
-    return CIP_PROVIDER;
+    return KYC_ANALYST;
   }
 
   @Test
-  public void testAutoProposal() {
+  public void testAutoAccept() {
     DefaultLedgerAdapter ledger = sandbox.getLedgerAdapter();
 
-    ContractWithId<DataLicenseProposal.ContractId> proposalWithId =
+    ContractWithId<DataLicense.ContractId> licenseWithId =
         ledger.getMatchedContract(
-            KYC_ANALYST, DataLicenseProposal.TEMPLATE_ID, DataLicenseProposal.ContractId::new);
+            KYC_ANALYST, DataLicense.TEMPLATE_ID, DataLicense.ContractId::new);
+    DataLicense license = DataLicense.fromValue(licenseWithId.record);
 
-    DataLicenseProposal proposal = DataLicenseProposal.fromValue(proposalWithId.record);
-
-    assertEquals(KYC_ANALYST.getValue(), proposal.consumer.party);
-    assertEquals(CIP_PROVIDER.getValue(), proposal.publisher.party);
-    assertEquals(OPERATOR.getValue(), proposal.operator);
+    assertEquals(KYC_ANALYST.getValue(), license.licenseData.consumer.party);
+    assertEquals(CIP_PROVIDER.getValue(), license.licenseData.publisher.party);
+    assertEquals(OPERATOR.getValue(), license.licenseData.operator);
 
     ledger.assertDidntHappen(
         KYC_ANALYST.getValue(),
-        ContractCreated.expectContract(DataLicenseProposal.TEMPLATE_ID, "{IGNORE}"));
+        ContractCreated.expectContract(DataLicense.TEMPLATE_ID, "{IGNORE}"));
   }
 }

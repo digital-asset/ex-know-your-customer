@@ -2,9 +2,9 @@
  * Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.knowyourcustomer.timeservice;
+package com.daml.product.refapps.knowyourcustomer.timeservice;
 
-import static com.digitalasset.refapps.utils.EventuallyUtil.eventually;
+import static com.daml.product.refapps.utils.EventuallyUtil.eventually;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -12,8 +12,8 @@ import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.extensions.testing.utils.ContractWithId;
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.knowyourcustomer.triggers.TriggerTest;
-import com.digitalasset.refapps.utils.DamlScript;
+import com.daml.product.refapps.knowyourcustomer.triggers.TriggerTest;
+import com.daml.product.refapps.utils.DamlScript;
 import com.google.protobuf.InvalidProtocolBufferException;
 import da.timeservice.timeservice.CurrentTime;
 import da.timeservice.timeservice.TimeManager;
