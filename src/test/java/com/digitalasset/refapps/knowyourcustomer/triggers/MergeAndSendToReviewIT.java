@@ -6,9 +6,9 @@ package com.digitalasset.refapps.knowyourcustomer.triggers;
 
 import static com.digitalasset.refapps.knowyourcustomer.assertions.Assert.assertContractsCreatedExactlyNTimes;
 
+import com.daml.extensions.testing.junit4.Sandbox;
+import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.testing.junit4.Sandbox;
-import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import da.refapps.knowyourcustomer.publication.Publication;
 import org.junit.ClassRule;
 import org.junit.Rule;

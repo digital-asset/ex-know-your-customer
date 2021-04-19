@@ -4,9 +4,9 @@
  */
 package com.digitalasset.refapps.knowyourcustomer.triggers;
 
+import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.refapps.utils.Trigger;
-import com.digitalasset.testing.junit4.Sandbox;
 import java.nio.file.Paths;
 import java.time.Duration;
 import org.junit.*;
