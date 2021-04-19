@@ -6,11 +6,7 @@ package com.daml.product.refapps.knowyourcustomer.triggers;
 
 import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.ledger.javaapi.data.Party;
-<<<<<<< HEAD:src/test/java/com/daml/product/refapps/knowyourcustomer/triggers/TriggerTest.java
 import com.daml.product.refapps.utils.Trigger;
-=======
-import com.digitalasset.refapps.utils.Trigger;
->>>>>>> origin/main:src/test/java/com/digitalasset/refapps/knowyourcustomer/triggers/TriggerTest.java
 import java.nio.file.Paths;
 import java.time.Duration;
 import org.junit.*;
