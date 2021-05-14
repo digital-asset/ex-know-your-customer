@@ -4,9 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+import argparse
 import logging
-import sys
-import time
 
 from damlassistant import run_script, wait_for_port
 
