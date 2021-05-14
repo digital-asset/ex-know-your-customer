@@ -21,6 +21,4 @@ args = parser.parse_args()
 logging.basicConfig(level=logging.DEBUG)
 
 wait_for_port(port=args.ledger_port, timeout=30)
-script = run_script(dar, script_name, args.ledger_port)
-if script.returncode != 0:
-    raise Exception("Script has returned nonzero")
+run_script(dar, script_name, args.ledger_port)
