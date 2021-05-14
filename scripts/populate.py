@@ -14,14 +14,13 @@ from damlassistant import run_script, wait_for_port
 dar = 'target/know-your-customer.dar'
 script_name = 'DA.RefApps.KnowYourCustomer.MarketSetupScript:setupMarketForSandbox'
 
-if len(sys.argv) < 2:
-    print(f"Usage: populate.py SANDBOX_PORT")
-    exit(1)
-sandbox_port = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('ledger_port')
+args = parser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG)
 
-wait_for_port(port=sandbox_port, timeout=30)
-script = run_script(dar, script_name, sandbox_port)
+wait_for_port(port=args.ledger_port, timeout=30)
+script = run_script(dar, script_name, args.ledger_port)
 if script.returncode != 0:
     raise Exception("Script has returned nonzero")
