@@ -91,6 +91,11 @@ jobs:
           command: |
             flake8 --max-line-length=120 scripts/*.py
       - run:
+          name: Pipenv check
+          command: |
+            cd scripts
+            pipenv check
+      - run:
           name: Integration tests
           command: |
             mvn verify
