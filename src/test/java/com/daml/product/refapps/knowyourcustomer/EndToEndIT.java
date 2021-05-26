@@ -68,7 +68,6 @@ public class EndToEndIT {
               KYC_QUALITY_ASSURANCE)
           .useWallclockTime()
           .sandboxWaitTimeout(Duration.ofSeconds(90))
-          .moduleAndScript("DA.RefApps.KnowYourCustomer.MarketSetupScript", "setupMarketForSandbox")
           .observationTimeout(Duration.ofSeconds(10))
           .build();
   @ClassRule public static ExternalResource compile = sandbox.getClassRule();
@@ -87,7 +86,7 @@ public class EndToEndIT {
     marketSetupAndTriggers =
         new ProcessBuilder()
             // need to call Python directly for proper subprocess cleanup (not sure why though)
-            .command("scripts/startTriggers.py", Integer.toString(sandbox.getSandboxPort()))
+            .command("launchers/populate+automation", Integer.toString(sandbox.getSandboxPort()))
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
             .start();
