@@ -85,7 +85,6 @@ public class EndToEndIT {
     logger.debug("starting triggers");
     marketSetupAndTriggers =
         new ProcessBuilder()
-            // need to call Python directly for proper subprocess cleanup (not sure why though)
             .command("launchers/populate+automation", Integer.toString(sandbox.getSandboxPort()))
             .redirectOutput(ProcessBuilder.Redirect.appendTo(log))
             .redirectError(ProcessBuilder.Redirect.appendTo(errLog))
