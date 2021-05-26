@@ -13,7 +13,9 @@ else
   SANDBOX_PORT="${1}"
 fi
 
-scripts/populate.py "$SANDBOX_PORT"
+cd scripts
+
+pipenv run ./populate.py "$SANDBOX_PORT"
 echo "DAML script executed"
 
-scripts/startTriggers.py "$SANDBOX_PORT"
+pipenv run ./startTriggers.py "$SANDBOX_PORT"

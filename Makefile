@@ -2,12 +2,16 @@ MODELS_DAR=target/know-your-customer.dar
 TRIGGERS_DAR=target/know-your-customer-triggers.dar
 
 .PHONY: build
-build: build-dars
+build: build-dars install-python-dependencies
 
 .PHONY: clean
 clean:
 	rm -rf .daml triggers/.daml
 	rm -rf target
+
+.PHONY: install-python-dependencies
+install-python-dependencies:
+	cd scripts && pipenv sync
 
 ### DARS ###
 
