@@ -20,6 +20,7 @@ Be sure you have the following installed:
 - Java
 - Maven
 - Make
+- [Python Pipenv](https://pipenv.pypa.io/)
 
 #### Build the App
 
