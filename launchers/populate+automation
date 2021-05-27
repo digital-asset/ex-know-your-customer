@@ -6,16 +6,11 @@
 
 set -e
 
-if [ $# -lt 1 ]
-then
-  SANDBOX_PORT=6865
-else
-  SANDBOX_PORT="${1}"
-fi
+PORT=${1:-6865}
 
-cd scripts
+export PIPENV_PIPFILE=scripts/Pipfile
 
-pipenv run ./populate.py "$SANDBOX_PORT"
+pipenv run scripts/populate.py "$PORT"
 echo "DAML script executed"
 
-pipenv run ./startTriggers.py "$SANDBOX_PORT"
+pipenv run scripts/startTriggers.py "$PORT"
