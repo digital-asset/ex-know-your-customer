@@ -155,6 +155,7 @@ jobs:
           keys:
             - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
             - m2
+      - install_python_dependencies
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - save_cache:
@@ -162,6 +163,10 @@ jobs:
             - ~/.m2
             - ~/.daml
           key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
+      - run:
+          name: Install pipenv dependencies
+          command: |
+            make install-python-dependencies
       - run:
           name: Maven build
           command: |
@@ -172,6 +177,8 @@ jobs:
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex_know_your_customer main \
             --logging.level.com.synopsys.integration=DEBUG \
+            --detect.python.path="$(which python3)" \
+            --detect.pipenv.path="$(which pipenv)" \
             --detect.notices.report=true \
             --detect.timeout=3600
       - run:
@@ -192,6 +199,15 @@ workflows:
       - integration_test:
           daml_sdk_version: "1.13.1"
           context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.13.1"
+          filters:
+            branches:
+              only:
+                - /.*blackduck.*/
+          context:
+            - blackduck
+            - refapps
   scheduled_test:
     triggers:
       - schedule:
