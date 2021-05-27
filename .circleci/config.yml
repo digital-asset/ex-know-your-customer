@@ -192,6 +192,15 @@ workflows:
       - integration_test:
           daml_sdk_version: "1.13.1"
           context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.13.1"
+          filters:
+            branches:
+              only:
+                - /.*blackduck.*/
+          context:
+            - blackduck
+            - refapps
   scheduled_test:
     triggers:
       - schedule:
