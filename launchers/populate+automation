@@ -13,4 +13,4 @@ export PIPENV_PIPFILE=scripts/Pipfile
 pipenv run scripts/populate.py "$PORT"
 echo "DAML script executed"
 
-pipenv run scripts/startTriggers.py "$PORT"
+exec pipenv run scripts/startTriggers.py "$PORT"
