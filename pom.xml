@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <daml-sdk.version>1.14.2</daml-sdk.version>
+        <daml-sdk.version>1.15.0</daml-sdk.version>
         <slf4j.version>1.7.26</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <junit.version>4.12</junit.version>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.daml.extensions</groupId>
             <artifactId>junit4-support_2.12</artifactId>
-            <version>0.1.21</version>
+            <version>0.1.23</version>
             <scope>test</scope>
         </dependency>
         <dependency>
